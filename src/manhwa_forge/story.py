@@ -102,11 +102,27 @@ class LLMClient(Protocol):
 
 class OllamaClient:
     """Calls local Ollama. Uses keep_alive=0 to release the model after each call
-    so ERNIE can reclaim VRAM immediately."""
+    so ERNIE can reclaim VRAM immediately.
 
-    def __init__(self, model: str = "gemma4:26b-a4b-it-q4_K_M", host: str | None = None):
+    Timeout defaults to 30 min because CPU-offloaded inference of a 26B+ model
+    on a VRAM-saturated system can easily take 5–10 min for a dense prompt.
+    Override via the OLLAMA_TIMEOUT env var or the timeout kwarg.
+
+    format='json' is passed through to Ollama — substantially reduces JSON
+    hygiene issues (mangled keys, unescaped control chars) vs. free-text mode.
+    """
+
+    def __init__(
+        self,
+        model: str = "gemma4:26b-a4b-it-q4_K_M",
+        host: str | None = None,
+        timeout: float | None = None,
+        num_predict: int = 8192,
+    ):
         self.model = model
         self.host = host or os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+        self.timeout = timeout if timeout is not None else float(os.environ.get("OLLAMA_TIMEOUT", "1800"))
+        self.num_predict = num_predict
 
     def complete(self, system: str, user: str) -> str:
         import requests
@@ -119,10 +135,15 @@ class OllamaClient:
                     {"role": "user", "content": user},
                 ],
                 "stream": False,
-                "keep_alive": 0,  # release memory immediately after
-                "options": {"temperature": 0.8, "top_p": 0.95},
+                "format": "json",  # structured output — major JSON-hygiene improvement
+                "keep_alive": 0,
+                "options": {
+                    "temperature": 0.8,
+                    "top_p": 0.95,
+                    "num_predict": self.num_predict,
+                },
             },
-            timeout=300,
+            timeout=self.timeout,
         )
         r.raise_for_status()
         return r.json()["message"]["content"]
