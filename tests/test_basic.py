@@ -21,6 +21,23 @@ def test_extract_json_with_preamble():
     assert out["title"] == "X"
 
 
+def test_extract_json_tolerates_unescaped_control_chars():
+    # Ollama sometimes emits a literal newline inside a string value.
+    text = '{"title": "Hello\nworld", "panels": []}'
+    out = _extract_json(text)
+    assert "Hello" in out["title"] and "world" in out["title"]
+
+
+def test_extract_json_tolerates_smart_quote_control_bytes():
+    # Unprintable control chars mid-string (e.g. 0x1f) — strict=False accepts
+    # them, so we survive without losing data.
+    text = '{"title": "a\x1fb", "panels": []}'
+    out = _extract_json(text)
+    # either the raw control char remains (strict=False path) or it's scrubbed
+    # to space — both are acceptable recoveries.
+    assert out["title"] in ("a\x1fb", "a b")
+
+
 def test_panel_prompt_builds():
     script = ChapterScript(
         title="T",

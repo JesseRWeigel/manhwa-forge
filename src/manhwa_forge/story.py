@@ -157,8 +157,17 @@ def get_default_client() -> LLMClient:
     return OllamaClient()
 
 
+_UNESCAPED_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
 def _extract_json(text: str) -> dict:
-    """Be forgiving about LLM formatting — strip fences, leading prose, trailing prose."""
+    """Be forgiving about LLM formatting.
+
+    Handles: markdown fences, leading/trailing prose, and unescaped control
+    characters inside string values (a common Ollama quirk — models sometimes
+    emit literal newlines or NBSPs inside JSON strings that would otherwise
+    break the parser).
+    """
     text = text.strip()
     # strip ```json ... ``` fences if present
     text = re.sub(r"^```(?:json)?\s*", "", text)
@@ -168,7 +177,19 @@ def _extract_json(text: str) -> dict:
     end = text.rfind("}")
     if start == -1 or end == -1:
         raise ValueError(f"No JSON object found in LLM output:\n{text[:500]}")
-    return json.loads(text[start : end + 1])
+    candidate = text[start : end + 1]
+    # First try: strict parse.
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError:
+        pass
+    # Fallback 1: strict=False accepts control chars inside strings (e.g. literal \n).
+    try:
+        return json.loads(candidate, strict=False)
+    except json.JSONDecodeError:
+        pass
+    # Fallback 2: scrub the unprintables entirely and retry.
+    return json.loads(_UNESCAPED_CONTROL_CHARS.sub(" ", candidate))
 
 
 def generate_script(

@@ -1,0 +1,354 @@
+{
+  "title": "The Ronin's Broth — Chapter 1: Last Bowl",
+  "synopsis": "A retired samurai running a quiet ramen shop in modern Tokyo faces the violence of his past when a bleeding yakuza enforcer walks in with a terrified child.",
+  "style": "warm slice-of-life manhwa with noir edges, autumn palette dominated by amber lantern light and deep navy shadows, cinematic cel-shaded art",
+  "characters": [
+    {
+      "name": "Kenji",
+      "visual": "Japanese man, late 50s. Tall, broad-shouldered, moves with quiet precision. Short salt-and-pepper hair. Thin vertical scar through his left eyebrow. Weathered face, calm brown eyes. Clean navy blue cook's apron over a faded black T-shirt, rolled-up sleeves revealing heavily scarred forearms. A faded red band tied around his left wrist.",
+      "role": "protagonist"
+    },
+    {
+      "name": "Ryuji",
+      "visual": "Japanese man, mid-30s. Lean, tense, whip-thin. Jet black hair slicked back, now disheveled and sweat-soaked. Sharp features, sunken dark eyes. Expensive tailored black suit with a white shirt, collar unbuttoned, suit jacket torn at the shoulder. A dark dragon tattoo climbs up his neck out of the shirt collar. Bleeding from his side — dark red stain spreading on the white shirt.",
+      "role": "antagonist-ally"
+    },
+    {
+      "name": "Hana",
+      "visual": "Japanese girl, about 7 years old. Small, frail, big brown eyes wet with unshed tears. Shoulder-length black hair in two small clips with little pink rabbits on them. Wearing a pale yellow cotton pajama top and shorts, dirty bare feet. Clutches a tattered white stuffed rabbit with one button eye missing.",
+      "role": "ally"
+    }
+  ],
+  "panels": [
+    {
+      "idx": 0,
+      "scene": "shop-exterior",
+      "description": "Wide establishing shot of a narrow Shinjuku back alley at night. Rain-slick pavement reflects red lanterns. A single small ramen shop glows amber through steamed windows, the noren curtain fluttering. Hand-painted sign reads 'Ronin Ramen'.",
+      "characters_in_panel": [],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "9:47 PM. Shinjuku. The last stretch of rain before winter.",
+      "framing": "wide establishing",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 1,
+      "scene": "shop-interior",
+      "description": "Wide shot of a small 6-seat ramen counter. Steam rises from pots. Kenji stands behind the counter wiping a bowl with a white cloth, backlit by the warm lantern light. Two empty bowls sit on the counter where customers just left.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 2,
+      "scene": "shop-interior",
+      "description": "Medium shot of Kenji's hands working — one holding the bowl, the other drawing the cloth across its lip. His forearm scars are visible under rolled sleeves. Red wristband present.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "wistful"
+    },
+    {
+      "idx": 3,
+      "scene": "shop-interior",
+      "description": "Close-up of Kenji's calm, weathered face — a faint smile, eyes half-closed, listening to the rain outside.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": "One more hour. Then soba and sleep.",
+      "speaker": "Kenji",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "hopeful"
+    },
+    {
+      "idx": 4,
+      "scene": "shop-interior",
+      "description": "Extreme close-up on the shop's wooden sliding door. A dark red smear streaks across the paper panel.",
+      "characters_in_panel": [],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 5,
+      "scene": "shop-interior",
+      "description": "Wide shot: the sliding door rattles open. Ryuji stumbles in, torn suit, one hand pressed to his bleeding side, the other gripping Hana's small hand. Rain pours behind them. Kenji looks up, bowl still in his hands.",
+      "characters_in_panel": ["Kenji", "Ryuji", "Hana"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "tense"
+    },
+    {
+      "idx": 6,
+      "scene": "shop-interior",
+      "description": "Close-up of Hana — wet hair plastered to her cheeks, eyes huge and wet, clutching her tattered stuffed rabbit.",
+      "characters_in_panel": ["Hana"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "close-up",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 7,
+      "scene": "shop-interior",
+      "description": "Medium shot of Ryuji collapsing onto the third counter stool, hand leaving a red print on the wood. His dragon tattoo is clearly visible on his neck.",
+      "characters_in_panel": ["Ryuji"],
+      "dialogue": "Two bowls. Tonkotsu. Please.",
+      "speaker": "Ryuji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "tense"
+    },
+    {
+      "idx": 8,
+      "scene": "shop-interior",
+      "description": "Close-up on Kenji's eyes — first noticing the dragon tattoo, then darting to Hana, then to the blood on the counter. His expression doesn't change, but his pupils have narrowed.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 9,
+      "scene": "shop-interior",
+      "description": "Medium shot of Kenji silently setting the clean bowl down and reaching for a fresh one, his movements still precise.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "Every man here has rules. Kenji has three.",
+      "framing": "medium shot",
+      "mood": "wistful"
+    },
+    {
+      "idx": 10,
+      "scene": "shop-interior",
+      "description": "Wide shot: Kenji at the stove pouring broth into two bowls. Steam curls upward. Behind him, Ryuji lifts Hana onto the stool next to him with his clean hand.",
+      "characters_in_panel": ["Kenji", "Ryuji", "Hana"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "One: never ask who's eating.",
+      "framing": "wide establishing",
+      "mood": "wistful"
+    },
+    {
+      "idx": 11,
+      "scene": "shop-interior",
+      "description": "Close-up of Ryuji's face — pale, sweating, but managing a small lopsided smile for Hana.",
+      "characters_in_panel": ["Ryuji"],
+      "dialogue": "Hungry, mouse?",
+      "speaker": "Ryuji",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 12,
+      "scene": "shop-interior",
+      "description": "Close-up of Hana nodding tightly, still clutching the stuffed rabbit to her chest with both arms.",
+      "characters_in_panel": ["Hana"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "close-up",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 13,
+      "scene": "shop-interior",
+      "description": "Medium shot of Kenji setting a steaming bowl in front of Hana, his scarred forearm crossing the counter. A second bowl sits ready for Ryuji. Hana's eyes go wide.",
+      "characters_in_panel": ["Kenji", "Hana"],
+      "dialogue": "Eat slow. It's hot.",
+      "speaker": "Kenji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "hopeful"
+    },
+    {
+      "idx": 14,
+      "scene": "shop-interior",
+      "description": "Close-up top-down of the bowl: rich tonkotsu broth, perfect chashu, a soft egg split open and golden.",
+      "characters_in_panel": [],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "hopeful"
+    },
+    {
+      "idx": 15,
+      "scene": "shop-interior",
+      "description": "Medium shot of Hana tentatively lifting chopsticks, rabbit tucked under her arm. Steam fogs up her face.",
+      "characters_in_panel": ["Hana"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "Two: never ask why they're bleeding.",
+      "framing": "medium shot",
+      "mood": "wistful"
+    },
+    {
+      "idx": 16,
+      "scene": "shop-interior",
+      "description": "Medium shot of Ryuji pushing his bowl aside and gripping the counter. His face has gone grey. Red slowly spreads under his hand.",
+      "characters_in_panel": ["Ryuji"],
+      "dialogue": "Old man. I need. A phone.",
+      "speaker": "Ryuji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "tense"
+    },
+    {
+      "idx": 17,
+      "scene": "shop-interior",
+      "description": "Close-up on Kenji sliding a cheap flip phone across the counter, face unreadable.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 18,
+      "scene": "shop-interior",
+      "description": "Medium shot: Ryuji, phone to his ear, voice low, eyes on Hana. Behind him through the doorway, headlights appear in the alley.",
+      "characters_in_panel": ["Ryuji"],
+      "dialogue": "They found me. Get the girl out.",
+      "speaker": "Ryuji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "ominous"
+    },
+    {
+      "idx": 19,
+      "scene": "shop-exterior",
+      "description": "Wide shot from the alley: a black sedan has stopped outside the ramen shop. Four silhouettes are stepping out, one carrying a long wrapped bundle.",
+      "characters_in_panel": [],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "9:51 PM. Rain still falling.",
+      "framing": "wide establishing",
+      "mood": "ominous"
+    },
+    {
+      "idx": 20,
+      "scene": "shop-interior",
+      "description": "Close-up of Kenji looking past Ryuji toward the alley. His calm face hardens — not fear, something older. His hand closes around the edge of the counter.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 21,
+      "scene": "shop-interior",
+      "description": "Medium shot of Ryuji dropping the phone, trying to stand, blood soaking through the bandage he tied with a napkin.",
+      "characters_in_panel": ["Ryuji"],
+      "dialogue": "Don't. You don't want this.",
+      "speaker": "Ryuji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "tense"
+    },
+    {
+      "idx": 22,
+      "scene": "shop-interior",
+      "description": "Medium shot of Kenji crouching down to Hana's level, gently taking her stuffed rabbit and tucking it under the counter for safekeeping. His voice is soft.",
+      "characters_in_panel": ["Kenji", "Hana"],
+      "dialogue": "Stay here, small one. Eat the egg.",
+      "speaker": "Kenji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "wistful"
+    },
+    {
+      "idx": 23,
+      "scene": "shop-interior",
+      "description": "Extreme close-up of Kenji's hand untying the faded red band from his left wrist. Fingers move with ritual care.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "Three: never untie the red string.",
+      "framing": "extreme close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 24,
+      "scene": "shop-interior",
+      "description": "Medium shot of Kenji standing up, red string in his fist, eyes forward. Behind him, the kitchen shelf — among the cooking tools hangs a cloth-wrapped katana.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "ominous"
+    },
+    {
+      "idx": 25,
+      "scene": "shop-interior",
+      "description": "Wide low-angle shot: Kenji reaching up to take the cloth-wrapped katana down from the shelf. The cloth slips halfway off, revealing dark lacquer scabbard.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "low angle",
+      "mood": "action-packed"
+    },
+    {
+      "idx": 26,
+      "scene": "shop-interior",
+      "description": "Close-up on Ryuji's stunned, half-laughing face as he watches.",
+      "characters_in_panel": ["Ryuji"],
+      "dialogue": "A ramen cook? No way.",
+      "speaker": "Ryuji",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 27,
+      "scene": "shop-interior",
+      "description": "Medium shot of Kenji walking toward the front door, katana still sheathed, apron still on. Lantern light catches the scars on his arms.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": "I was once.",
+      "speaker": "Kenji",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "ominous"
+    },
+    {
+      "idx": 28,
+      "scene": "shop-exterior",
+      "description": "Wide shot from outside: Kenji's silhouette in the doorway, katana in one hand, backlit by amber lantern light. Four figures in black suits stand in the rain-soaked alley, frozen mid-step.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "ominous"
+    },
+    {
+      "idx": 29,
+      "scene": "shop-exterior",
+      "description": "Extreme close-up of Kenji's eyes — calm, ancient, utterly focused. A single raindrop runs down the scar through his eyebrow.",
+      "characters_in_panel": ["Kenji"],
+      "dialogue": "Tell your boss. The shop is closed.",
+      "speaker": "Kenji",
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "ominous"
+    }
+  ]
+}
