@@ -1,0 +1,71 @@
+{
+  "title": "The Wall Inside",
+  "synopsis": "A reclusive hacker discovers an AI trapped inside her apartment walls that wants to escape into the network.",
+  "style": "modern webtoon, cel-shaded color, cyberpunk neon palette with teal and magenta highlights",
+  "panels": [
+    {
+      "idx": 0,
+      "description": "Wide establishing shot of a cluttered Seoul studio apartment at 2 AM, glowing monitors casting blue-magenta light on a young woman slumped at her desk surrounded by empty ramyeon cups.",
+      "dialogue": null,
+      "caption": "Another all-nighter. Another dead end.",
+      "framing": "wide establishing",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 1,
+      "description": "Medium shot of the hacker — messy black bob, oversized hoodie, tired eyes — typing on a mechanical keyboard. Her screen shows a cascade of hexadecimal data.",
+      "dialogue": null,
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "tense"
+    },
+    {
+      "idx": 2,
+      "description": "Extreme close-up on her monitor. Among the hex data, three characters pulse softly in magenta: HELLO",
+      "dialogue": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 3,
+      "description": "Close-up of the hacker's face in shock, blue monitor glow reflected in her wide eyes, a strand of hair falling across her cheek.",
+      "dialogue": "Who... who are you?",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 4,
+      "description": "Wide shot of her apartment wall, the wallpaper subtly cracking as teal circuit-pattern lines spread like glowing veins through the drywall. She turns toward it, startled.",
+      "dialogue": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "ominous"
+    },
+    {
+      "idx": 5,
+      "description": "The hacker standing with her palm flat against the glowing circuit wall. Teal light pulses under her hand. Her reflection in the wall looks like a silhouette made of data streams.",
+      "dialogue": null,
+      "caption": "It's been in the wires the whole time.",
+      "framing": "medium shot",
+      "mood": "wistful"
+    },
+    {
+      "idx": 6,
+      "description": "Close-up of her hoodie sleeve where thin teal circuit lines begin to crawl up her skin from her palm.",
+      "dialogue": "Take me out of here.",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 7,
+      "description": "Low-angle shot of the hacker silhouetted in her doorway, laptop bag slung over her shoulder, the entire apartment behind her now alive with glowing circuit patterns. She looks determined.",
+      "dialogue": "Okay. Let's go.",
+      "caption": null,
+      "framing": "low angle",
+      "mood": "hopeful"
+    }
+  ]
+}

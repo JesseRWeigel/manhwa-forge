@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "manhwa-forge"
+version = "0.1.0"
+description = "Generate full manhwa chapters from a one-line story idea. ERNIE-Image-Turbo + local LLM."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Jesse Weigel" }]
+keywords = ["manhwa", "webtoon", "comic", "generative-ai", "ernie", "diffusion"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Artistic Software",
+]
+dependencies = [
+    "click>=8.1",
+    "Pillow>=10.0",
+    "requests>=2.31",
+    "pydantic>=2.5",
+]
+
+[project.optional-dependencies]
+ollama = ["ollama>=0.3"]
+anthropic = ["anthropic>=0.40"]
+
+[project.scripts]
+manhwa-forge = "manhwa_forge.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/JesseRWeigel/manhwa-forge"
+Issues = "https://github.com/JesseRWeigel/manhwa-forge/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/manhwa_forge"]
