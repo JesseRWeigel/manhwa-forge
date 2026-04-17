@@ -14,7 +14,7 @@ from .story import generate_script, LLMClient
 def generate_chapter(
     idea: str,
     out_dir: Path,
-    n_panels: int = 8,
+    n_panels: int = 30,
     style_hint: str | None = None,
     seed_base: int = 42,
     llm: LLMClient | None = None,

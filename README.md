@@ -5,7 +5,7 @@
 ```bash
 manhwa-forge generate \
   --idea "A reclusive hacker discovers an AI in her walls that wants to escape" \
-  --panels 8 \
+  --panels 30 \
   --out chapters/wall-inside/
 ```
 
@@ -54,11 +54,41 @@ file issues.
 ```
 
 1. **Script** — One LLM call expands your idea into a structured chapter with
-   per-panel descriptions, dialogue, framing, and mood.
+   character sheets, scene labels, per-panel descriptions, dialogue, framing,
+   and mood. The LLM is instructed to follow a 4-beat arc
+   (setup → inciting incident → rising action → climax + hook).
 2. **Render** — Each panel is turned into a concrete prompt and sent to a
-   local ERNIE-Image-Turbo server (run separately).
+   local ERNIE-Image-Turbo server (run separately). Character visual
+   descriptions are injected verbatim into every panel they appear in, which
+   keeps the same character recognizable across the chapter.
 3. **Compose** — Panels are stacked vertically into a single tall PNG with a
-   title banner.
+   title banner, ready to upload.
+
+### Chapter schema
+
+```json
+{
+  "title": "…",
+  "synopsis": "…",
+  "style": "art-style keywords",
+  "characters": [
+    { "name": "Mira", "visual": "dense casting-sheet description", "role": "protagonist" }
+  ],
+  "panels": [
+    {
+      "idx": 0,
+      "scene": "apartment-night",
+      "description": "what the reader sees",
+      "characters_in_panel": ["Mira"],
+      "dialogue": "…",
+      "speaker": "Mira",
+      "caption": "narrator/internal monologue",
+      "framing": "wide establishing | medium shot | close-up | extreme close-up | low angle | high angle",
+      "mood": "tense | melancholic | hopeful | ominous | action-packed | wistful"
+    }
+  ]
+}
+```
 
 ## Requirements
 

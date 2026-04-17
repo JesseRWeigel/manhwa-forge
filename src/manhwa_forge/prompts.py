@@ -3,12 +3,30 @@
 We lean into what ERNIE does well (text rendering, cel-shaded characters,
 structured compositions) and avoid what it doesn't (multi-panel grids,
 complex spatial instructions about subject positioning).
+
+Key to character consistency across panels: the full CharacterSheet.visual
+description gets injected into every panel prompt where that character
+appears. Same description → similar character across panels.
 """
 from __future__ import annotations
-from .models import ChapterScript, PanelBeat
+from .models import META_CHARACTER_NAMES, ChapterScript, PanelBeat
 
-# A manhwa panel has: subject, action, setting, framing, mood, (maybe) text.
-# We build a prompt that's dense on visual nouns + verbs, then suffix the style.
+
+_MOOD_TO_LIGHTING = {
+    "tense": "harsh contrasting shadows, dramatic rim lighting",
+    "melancholic": "soft diffused light, muted palette, rain drops or fog",
+    "hopeful": "warm golden hour light, gentle bloom, pastel highlights",
+    "ominous": "deep cool shadows, blue-green palette, eerie glow",
+    "action-packed": "motion blur, speed lines, high-contrast dynamic lighting",
+    "wistful": "soft twilight purples and pinks, gentle haze",
+    "neutral": "balanced natural lighting",
+}
+
+
+def _visible_characters(beat: PanelBeat, script: ChapterScript):
+    """Return CharacterSheets for characters actually visible in the panel."""
+    names = {n.lower() for n in beat.characters_in_panel if n.lower() not in META_CHARACTER_NAMES}
+    return [c for c in script.characters if c.name.lower() in names]
 
 
 def build_panel_prompt(beat: PanelBeat, script: ChapterScript) -> str:
@@ -19,35 +37,39 @@ def build_panel_prompt(beat: PanelBeat, script: ChapterScript) -> str:
         f"A Korean manhwa panel in full color, vertical composition, {beat.framing}."
     )
 
-    # 2) Subject + action + setting (the beat description is already visual-first)
+    # 2) Character visuals — injected verbatim for consistency
+    visible = _visible_characters(beat, script)
+    if visible:
+        char_lines = []
+        for c in visible:
+            char_lines.append(f"{c.name}: {c.visual}")
+        parts.append("Characters visibly present (draw exactly as described): " + " | ".join(char_lines) + ".")
+
+    # 3) Scene description (what's happening + setting)
     parts.append(beat.description.strip())
 
-    # 3) Mood/lighting cues
-    mood_to_lighting = {
-        "tense": "harsh contrasting shadows, dramatic rim lighting",
-        "melancholic": "soft diffused light, muted palette, rain drops or fog",
-        "hopeful": "warm golden hour light, gentle bloom, pastel highlights",
-        "ominous": "deep cool shadows, blue-green palette, eerie glow",
-        "action-packed": "motion blur, speed lines, high-contrast dynamic lighting",
-        "wistful": "soft twilight purples and pinks, gentle haze",
-        "neutral": "balanced natural lighting",
-    }
-    lighting = mood_to_lighting.get(beat.mood.lower(), "balanced lighting")
+    # 4) Mood/lighting cues
+    lighting = _MOOD_TO_LIGHTING.get(beat.mood.lower(), "balanced lighting")
     parts.append(lighting + ".")
 
-    # 4) Text elements (let ERNIE render these inside the image)
+    # 5) Dialogue — attributed to speaker if we know them
     if beat.dialogue:
-        # Force English rendering explicitly — ERNIE's prompt enhancer will
-        # otherwise localize to Japanese/Chinese when the scene looks Asian.
+        attribution = ""
+        if beat.speaker:
+            speaker = next((c for c in visible if c.name.lower() == beat.speaker.lower()), None)
+            if speaker is not None:
+                attribution = f" Bubble points toward {speaker.name}."
         parts.append(
-            f"A clean white speech bubble in English reads exactly: \"{beat.dialogue}\"."
-        )
-    if beat.caption:
-        parts.append(
-            f"A narration caption box at the bottom in English reads exactly: \"{beat.caption}\"."
+            f'A clean white speech bubble with black outline, English text reading exactly: "{beat.dialogue}".{attribution}'
         )
 
-    # 5) Style suffix — keep consistent across panels for visual coherence
+    # 6) Caption — narrator box
+    if beat.caption:
+        parts.append(
+            f'A narration caption box with dark background and white English text reading exactly: "{beat.caption}".'
+        )
+
+    # 7) Style suffix — consistent across panels
     parts.append(
         f"Art style: {script.style}. "
         f"Sharp cel-shading, thick digital linework, clean outlines, professional webtoon quality."

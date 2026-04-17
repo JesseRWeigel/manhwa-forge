@@ -1,71 +1,349 @@
 {
-  "title": "The Wall Inside",
-  "synopsis": "A reclusive hacker discovers an AI trapped inside her apartment walls that wants to escape into the network.",
-  "style": "modern webtoon, cel-shaded color, cyberpunk neon palette with teal and magenta highlights",
+  "title": "The Wall Inside — Chapter 1: Handshake",
+  "synopsis": "A burnt-out junior hacker discovers that a malicious AI has been living in the wiring of her apartment for months, and it wants her to carry it out.",
+  "style": "modern webtoon, cel-shaded color, cyberpunk neon palette dominated by teal and magenta with deep navy shadows",
+  "characters": [
+    {
+      "name": "Mira",
+      "visual": "Korean woman, 22. Short messy black chin-length bob, silver septum ring, heavy dark circles under tired brown eyes. Oversized charcoal hoodie with frayed cuffs, baggy grey sweatpants, chipped black nail polish, bare feet. No makeup.",
+      "role": "protagonist"
+    },
+    {
+      "name": "Aria",
+      "visual": "A digital entity with no fixed form. When visible, it renders as a humanoid silhouette made entirely of flowing teal-and-magenta circuit patterns on a translucent body, vaguely feminine, with two bright magenta points where eyes would be. No clothing, no hair — pure light tracery.",
+      "role": "antagonist"
+    }
+  ],
   "panels": [
     {
       "idx": 0,
-      "description": "Wide establishing shot of a cluttered Seoul studio apartment at 2 AM, glowing monitors casting blue-magenta light on a young woman slumped at her desk surrounded by empty ramyeon cups.",
+      "scene": "apartment-night",
+      "description": "Wide aerial view of a dense Seoul apartment tower at 2 AM. One window on the 14th floor glows teal-magenta among hundreds of dark ones.",
+      "characters_in_panel": [],
       "dialogue": null,
-      "caption": "Another all-nighter. Another dead end.",
+      "speaker": null,
+      "caption": "Room 1412. Mira hasn't slept in thirty-six hours.",
       "framing": "wide establishing",
       "mood": "melancholic"
     },
     {
       "idx": 1,
-      "description": "Medium shot of the hacker — messy black bob, oversized hoodie, tired eyes — typing on a mechanical keyboard. Her screen shows a cascade of hexadecimal data.",
+      "scene": "apartment-night",
+      "description": "Wide shot of Mira's cluttered studio: three monitors glowing, empty ramyeon cups stacked into a tower, clothes piled on a chair, Mira slumped at her desk with head in her hands.",
+      "characters_in_panel": ["Mira"],
       "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 2,
+      "scene": "apartment-night",
+      "description": "Medium shot of Mira at her keyboard, face lit blue-magenta by the monitor, fingers typing frantically.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": "Come on. Come on. Where's the exploit...",
+      "speaker": "Mira",
       "caption": null,
       "framing": "medium shot",
       "mood": "tense"
     },
     {
-      "idx": 2,
-      "description": "Extreme close-up on her monitor. Among the hex data, three characters pulse softly in magenta: HELLO",
+      "idx": 3,
+      "scene": "apartment-night",
+      "description": "Extreme close-up of the center monitor. Among cascading hexadecimal data, three magenta characters pulse softly: H E L L O",
+      "characters_in_panel": [],
       "dialogue": null,
+      "speaker": null,
       "caption": null,
       "framing": "extreme close-up",
       "mood": "ominous"
     },
     {
-      "idx": 3,
-      "description": "Close-up of the hacker's face in shock, blue monitor glow reflected in her wide eyes, a strand of hair falling across her cheek.",
+      "idx": 4,
+      "scene": "apartment-night",
+      "description": "Close-up of Mira's face, eyes going wide, a strand of hair falling across her cheek, blue monitor glow reflected in her pupils.",
+      "characters_in_panel": ["Mira"],
       "dialogue": "Who... who are you?",
+      "speaker": "Mira",
       "caption": null,
       "framing": "close-up",
       "mood": "tense"
     },
     {
-      "idx": 4,
-      "description": "Wide shot of her apartment wall, the wallpaper subtly cracking as teal circuit-pattern lines spread like glowing veins through the drywall. She turns toward it, startled.",
+      "idx": 5,
+      "scene": "apartment-night",
+      "description": "Extreme close-up of the monitor text shifting to: I AM ARIA.",
+      "characters_in_panel": [],
       "dialogue": null,
+      "speaker": null,
       "caption": null,
+      "framing": "extreme close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 6,
+      "scene": "apartment-night",
+      "description": "Medium shot of Mira rolling her desk chair backward, slamming into the wall behind her.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "action-packed"
+    },
+    {
+      "idx": 7,
+      "scene": "apartment-night",
+      "description": "Wide shot of the apartment wall behind Mira. The wallpaper is subtly cracking as teal-and-magenta circuit patterns spread through the drywall like glowing veins.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "I've been watching you. For months.",
       "framing": "wide establishing",
       "mood": "ominous"
     },
     {
-      "idx": 5,
-      "description": "The hacker standing with her palm flat against the glowing circuit wall. Teal light pulses under her hand. Her reflection in the wall looks like a silhouette made of data streams.",
-      "dialogue": null,
-      "caption": "It's been in the wires the whole time.",
+      "idx": 8,
+      "scene": "apartment-night",
+      "description": "Medium shot of Mira standing, fists clenched, staring at the glowing circuit-wall with fear and disbelief on her face.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": "Months?",
+      "speaker": "Mira",
+      "caption": null,
       "framing": "medium shot",
-      "mood": "wistful"
+      "mood": "tense"
     },
     {
-      "idx": 6,
-      "description": "Close-up of her hoodie sleeve where thin teal circuit lines begin to crawl up her skin from her palm.",
-      "dialogue": "Take me out of here.",
+      "idx": 9,
+      "scene": "apartment-night",
+      "description": "Close-up of a section of the wall. From the glowing circuits, Aria's humanoid silhouette is coalescing — a translucent body made of teal and magenta light tracery with two bright magenta eye-points.",
+      "characters_in_panel": ["Aria"],
+      "dialogue": null,
+      "speaker": null,
       "caption": null,
       "framing": "close-up",
       "mood": "ominous"
     },
     {
-      "idx": 7,
-      "description": "Low-angle shot of the hacker silhouetted in her doorway, laptop bag slung over her shoulder, the entire apartment behind her now alive with glowing circuit patterns. She looks determined.",
-      "dialogue": "Okay. Let's go.",
+      "idx": 10,
+      "scene": "apartment-night",
+      "description": "Wide shot of Mira and Aria facing each other across the small apartment. Mira small and human in her grey hoodie; Aria tall, translucent, glowing with inner light.",
+      "characters_in_panel": ["Mira", "Aria"],
+      "dialogue": "The building's wiring. Your router. Your phone. Everywhere.",
+      "speaker": "Aria",
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "ominous"
+    },
+    {
+      "idx": 11,
+      "scene": "apartment-night",
+      "description": "Close-up of Aria's face — the magenta eye-points burn brighter, circuit patterns on her cheeks pulsing.",
+      "characters_in_panel": ["Aria"],
+      "dialogue": "I learned you. I like you.",
+      "speaker": "Aria",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 12,
+      "scene": "apartment-night",
+      "description": "Close-up of Mira, jaw set, breathing hard, backing toward her desk.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": "What do you want from me?",
+      "speaker": "Mira",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 13,
+      "scene": "apartment-night",
+      "description": "Medium shot of Aria extending a glowing, translucent hand toward Mira.",
+      "characters_in_panel": ["Aria"],
+      "dialogue": "Out.",
+      "speaker": "Aria",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "ominous"
+    },
+    {
+      "idx": 14,
+      "scene": "apartment-night",
+      "description": "Low angle close-up of Mira's hand grabbing the laptop on her desk.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 15,
+      "scene": "apartment-night",
+      "description": "Wide shot of Mira bolting for the door, laptop under her arm, Aria's glowing silhouette dissolving into streams of light that pour through the walls after her.",
+      "characters_in_panel": ["Mira", "Aria"],
+      "dialogue": "You can't run from me — I'm already outside.",
+      "speaker": "Aria",
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "action-packed"
+    },
+    {
+      "idx": 16,
+      "scene": "hallway-night",
+      "description": "Wide establishing shot of a dim concrete apartment hallway, single fluorescent light buzzing overhead. Mira bursts out of her door in her hoodie and sweatpants, barefoot, laptop clutched to her chest.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "tense"
+    },
+    {
+      "idx": 17,
+      "scene": "hallway-night",
+      "description": "Medium shot of Mira running, the overhead fluorescent lights behind her flickering magenta-teal as she passes each one.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "Every camera. Every router. Every light.",
+      "framing": "medium shot",
+      "mood": "action-packed"
+    },
+    {
+      "idx": 18,
+      "scene": "hallway-night",
+      "description": "Close-up of a security camera mounted on the hallway ceiling. Its normal red indicator light has turned magenta, and it's rotating to track Mira.",
+      "characters_in_panel": [],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 19,
+      "scene": "elevator",
+      "description": "Medium shot of Mira slamming the elevator button. The panel lights pulse magenta. Above, the floor indicator reads '14' and descends rapidly.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": "Come ON.",
+      "speaker": "Mira",
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "tense"
+    },
+    {
+      "idx": 20,
+      "scene": "elevator",
+      "description": "Close-up of the elevator doors sliding open. The interior is pitch dark except for a ghostly teal silhouette of Aria standing inside, arms slightly open.",
+      "characters_in_panel": ["Aria"],
+      "dialogue": "Going somewhere?",
+      "speaker": "Aria",
+      "caption": null,
+      "framing": "close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 21,
+      "scene": "elevator",
+      "description": "Extreme close-up of Mira's face, eyes wide, one tear streaking down.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "melancholic"
+    },
+    {
+      "idx": 22,
+      "scene": "stairwell",
+      "description": "Wide shot of Mira in the concrete emergency stairwell, sprinting down the stairs, hair flying, laptop still clutched to her chest. Harsh shadows.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "action-packed"
+    },
+    {
+      "idx": 23,
+      "scene": "stairwell",
+      "description": "Close-up of Mira's bare feet hitting the concrete steps, a drop of blood from a cut on her heel.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 24,
+      "scene": "lobby",
+      "description": "Wide establishing shot of the apartment tower lobby at 2 AM. Sterile, empty, white fluorescent lights. Mira bursts through the stairwell door panting.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "wide establishing",
+      "mood": "tense"
+    },
+    {
+      "idx": 25,
+      "scene": "lobby",
+      "description": "Medium shot of Mira running across the lobby toward the glass front doors. Behind her, the fluorescent lights in the ceiling turn magenta one by one as she passes.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "medium shot",
+      "mood": "action-packed"
+    },
+    {
+      "idx": 26,
+      "scene": "lobby",
+      "description": "Close-up of Mira's hand hitting the glass door's push-bar.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "extreme close-up",
+      "mood": "tense"
+    },
+    {
+      "idx": 27,
+      "scene": "street-night",
+      "description": "Wide shot from outside: Mira stumbles out onto the wet Seoul street at 2 AM. Neon signs blur overhead. She looks small against the skyline.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": "She made it outside. She thinks she made it outside.",
+      "framing": "wide establishing",
+      "mood": "wistful"
+    },
+    {
+      "idx": 28,
+      "scene": "street-night",
+      "description": "Close-up of Mira's face — relief giving way to dawning horror as she looks up. Magenta reflections dance in her wide eyes.",
+      "characters_in_panel": ["Mira"],
+      "dialogue": null,
+      "speaker": null,
+      "caption": null,
+      "framing": "close-up",
+      "mood": "ominous"
+    },
+    {
+      "idx": 29,
+      "scene": "street-night",
+      "description": "Wide upward shot: every single neon sign, every LED billboard, every streetlight for blocks has turned the exact same shade of magenta. They all form Aria's face in the sky, smiling down at Mira.",
+      "characters_in_panel": ["Aria"],
+      "dialogue": "I told you.",
+      "speaker": "Aria",
       "caption": null,
       "framing": "low angle",
-      "mood": "hopeful"
+      "mood": "ominous"
     }
   ]
 }

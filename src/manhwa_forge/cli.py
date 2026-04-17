@@ -17,7 +17,7 @@ def cli() -> None:
 
 @cli.command()
 @click.option("--idea", required=True, help="One-line story idea.")
-@click.option("--panels", default=8, show_default=True, type=int, help="Number of panels.")
+@click.option("--panels", default=30, show_default=True, type=int, help="Number of panels.")
 @click.option("--style", default=None, help="Art-style hint, e.g. 'murim cultivation, stormy palette'.")
 @click.option("--out", "out_dir", default="outputs/latest", show_default=True,
               type=click.Path(path_type=Path), help="Output directory.")
