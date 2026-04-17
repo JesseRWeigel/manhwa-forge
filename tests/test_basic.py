@@ -1,4 +1,6 @@
 """Basic tests — no network, no GPU."""
+import pytest
+
 from manhwa_forge.models import CharacterSheet, ChapterScript, PanelBeat
 from manhwa_forge.prompts import build_panel_prompt, size_for_framing
 from manhwa_forge.story import _extract_json
@@ -110,3 +112,43 @@ def test_narrator_meta_character_skipped():
     prompt = build_panel_prompt(beat, script)
     assert "should not appear" not in prompt
     assert "The city slept." in prompt
+
+
+# --- Web UI smoke tests -------------------------------------------------------
+
+def _web_client(tmp_path):
+    """Build a Flask test client with a no-op worker so tests never touch
+    the LLM or ERNIE server."""
+    flask = pytest.importorskip("flask")  # noqa: F841
+    from manhwa_forge.web import create_app
+
+    app = create_app(out_root=tmp_path / "out")
+    # Replace the worker with a no-op so POST /api/generate returns instantly
+    # and doesn't try to reach Ollama/ERNIE.
+    app.config["RUN_JOB"] = lambda job, out_root: None
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+def test_web_index_renders_form(tmp_path):
+    client = _web_client(tmp_path)
+    r = client.get("/")
+    assert r.status_code == 200
+    body = r.get_data(as_text=True)
+    assert "<textarea" in body
+    assert "manhwa-forge" in body
+
+
+def test_web_generate_returns_job_id(tmp_path):
+    client = _web_client(tmp_path)
+    r = client.post("/api/generate", json={"idea": "An AI wakes up inside a wall.", "panels": 8})
+    assert r.status_code == 200
+    data = r.get_json()
+    assert "job_id" in data and isinstance(data["job_id"], str) and len(data["job_id"]) > 0
+
+
+def test_web_generate_rejects_empty_idea(tmp_path):
+    client = _web_client(tmp_path)
+    r = client.post("/api/generate", json={"idea": "   "})
+    assert r.status_code == 400
+    assert "idea" in r.get_json()["error"]

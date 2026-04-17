@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>manhwa-forge</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--card2:#1e2230;--bd:#2a2f3d;--fg:#e7e9ee;--mu:#9098a8;--a1:#ff5d8f;--a2:#7c5cff;--ok:#3ecf8e;--er:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.page{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+h1{margin:0 0 8px;font-size:32px;letter-spacing:-.02em;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+header p{margin:0 0 32px;color:var(--mu)}
+form{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:24px;display:grid;gap:16px}
+label{display:block;font-size:13px;color:var(--mu);margin-bottom:6px}
+textarea,input[type="text"],input[type="number"]{width:100%;background:var(--card2);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;font:inherit;outline:none}
+textarea{min-height:90px;resize:vertical}
+textarea:focus,input:focus{border-color:var(--a2)}
+.row{display:grid;grid-template-columns:1fr 2fr;gap:16px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+button{background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0;border-radius:8px;padding:12px 18px;font:inherit;font-weight:600;cursor:pointer;justify-self:start}
+button:disabled{opacity:.5;cursor:progress}
+#progress{margin-top:32px;display:none}
+#progress.active{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px 24px;margin-bottom:20px}
+.card h2{margin:0 0 8px;font-size:20px}
+.card .syn{color:var(--mu);margin:0}
+.sl{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mu);margin-top:10px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--card2);color:var(--fg);font-size:12px;font-weight:600}
+.pill.ok{color:var(--ok)}.pill.er{color:var(--er)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.panel{background:var(--card2);border:1px solid var(--bd);border-radius:10px;overflow:hidden;aspect-ratio:3/4;position:relative}
+.panel img{width:100%;height:100%;object-fit:cover;display:block}
+.panel .idx{position:absolute;top:6px;left:8px;font-size:11px;color:var(--mu);background:rgba(0,0,0,.5);padding:2px 6px;border-radius:4px}
+.final{display:none;text-align:center;padding:28px;background:linear-gradient(135deg,rgba(255,93,143,.12),rgba(124,92,255,.12));border:1px solid var(--bd);border-radius:14px;margin-top:20px}
+.final.active{display:block}
+.final a{display:inline-block;margin-top:10px;padding:12px 22px;background:var(--fg);color:var(--bg);border-radius:8px;text-decoration:none;font-weight:600}
+.err{background:rgba(255,107,107,.08);border:1px solid var(--er);color:var(--er);padding:14px 16px;border-radius:10px;margin-top:16px;display:none;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;white-space:pre-wrap}
+.err.active{display:block}
+footer{color:var(--mu);font-size:12px;text-align:center;margin-top:48px}
+</style>
+</head>
+<body>
+<div class="page">
+<header><h1>manhwa-forge</h1><p>A story idea in, a full chapter out. Panels stream in as ERNIE renders them.</p></header>
+<form id="f">
+  <div><label for="idea">Story idea</label>
+    <textarea id="idea" name="idea" rows="3" required placeholder="A reclusive hacker discovers an AI in her walls that wants to escape."></textarea></div>
+  <div class="row">
+    <div><label for="panels">Panels</label><input id="panels" type="number" value="30" min="6" max="60"/></div>
+    <div><label for="style">Style hint (optional)</label><input id="style" type="text" placeholder="modern webtoon, cel-shaded, moody neon palette"/></div>
+  </div>
+  <button id="go" type="submit">Generate chapter</button>
+</form>
+<section id="progress">
+  <div class="card" id="scriptCard" style="display:none">
+    <h2 id="title"></h2><p class="syn" id="synopsis"></p>
+    <div class="sl"><span id="styleLabel"></span><span class="pill" id="statusPill">rendering…</span></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="err" id="errBox"></div>
+  <div class="final" id="finalBox"><strong>Chapter complete.</strong><br/>
+    <a id="finalLink" href="#" target="_blank" rel="noopener">View full chapter →</a></div>
+</section>
+<footer>localhost only · no auth · see web.py for notes</footer>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const form = $("f"), go = $("go"), progress = $("progress"), scriptCard = $("scriptCard");
+const titleEl = $("title"), synEl = $("synopsis"), styleEl = $("styleLabel"), pill = $("statusPill");
+const grid = $("grid"), errBox = $("errBox"), finalBox = $("finalBox"), finalLink = $("finalLink");
+
+function reset() {
+  scriptCard.style.display = "none";
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+  errBox.classList.remove("active"); errBox.textContent = "";
+  finalBox.classList.remove("active");
+  pill.className = "pill"; pill.textContent = "rendering…";
+}
+function makeSlot(i) {
+  const s = document.createElement("div"); s.className = "panel"; s.id = "slot-" + i;
+  const lbl = document.createElement("span"); lbl.className = "idx";
+  lbl.textContent = "#" + String(i).padStart(2, "0"); s.appendChild(lbl); return s;
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault(); reset(); progress.classList.add("active"); go.disabled = true;
+  const body = {idea: $("idea").value, panels: $("panels").value, style: $("style").value};
+  let jobId;
+  try {
+    const r = await fetch("/api/generate", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(body)});
+    if (!r.ok) throw new Error((await r.json()).error || r.statusText);
+    jobId = (await r.json()).job_id;
+  } catch (err) {
+    errBox.textContent = "Failed to start: " + err.message;
+    errBox.classList.add("active"); go.disabled = false; return;
+  }
+  const es = new EventSource(`/api/stream/${jobId}`);
+  let total = 0, done = 0;
+  es.addEventListener("script", (ev) => {
+    const d = JSON.parse(ev.data); total = d.n_panels;
+    titleEl.textContent = d.title; synEl.textContent = d.synopsis; styleEl.textContent = d.style;
+    scriptCard.style.display = "block";
+    for (let i = 0; i < total; i++) grid.appendChild(makeSlot(i));
+  });
+  es.addEventListener("panel", (ev) => {
+    const d = JSON.parse(ev.data); done += 1;
+    const slot = document.getElementById("slot-" + d.idx);
+    if (slot) {
+      const img = document.createElement("img");
+      img.src = d.url; img.alt = d.dialogue || d.caption || ("panel " + d.idx);
+      slot.appendChild(img);
+    }
+    pill.textContent = `${done} / ${total}`;
+  });
+  es.addEventListener("done", (ev) => {
+    const d = JSON.parse(ev.data);
+    pill.textContent = "done"; pill.classList.add("ok");
+    finalLink.href = d.url; finalBox.classList.add("active");
+    es.close(); go.disabled = false;
+  });
+  es.addEventListener("error", (ev) => {
+    // Nameless "error" fires on connection close too — only show structured payloads.
+    if (ev.data) {
+      try {
+        const d = JSON.parse(ev.data);
+        errBox.textContent = d.message || "unknown error";
+        errBox.classList.add("active");
+        pill.textContent = "error"; pill.classList.add("er");
+      } catch (_) {}
+    }
+    if (es.readyState === EventSource.CLOSED) go.disabled = false;
+  });
+});
+</script>
+</body>
+</html>

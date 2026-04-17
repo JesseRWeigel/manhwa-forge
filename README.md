@@ -114,6 +114,18 @@ pip install -e ".[anthropic]"
 export ANTHROPIC_API_KEY=sk-...
 ```
 
+## Web UI
+
+A minimal browser UI for typing an idea and watching panels stream in live (Flask + Server-Sent Events, no build step).
+
+```bash
+pip install -e ".[web]"
+manhwa-forge web --host 127.0.0.1 --port 5001
+# then open http://127.0.0.1:5001
+```
+
+The web UI is **localhost only** and ships with no authentication. Do not expose it to the public internet.
+
 ## Usage
 
 ### Generate from scratch

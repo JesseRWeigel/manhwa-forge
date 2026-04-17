@@ -80,5 +80,22 @@ def health() -> None:
         raise click.ClickException(f"ERNIE server unreachable at {client.host}: {e}")
 
 
+@cli.command()
+@click.option("--host", default="127.0.0.1", show_default=True, help="Bind address. Keep on localhost — no auth.")
+@click.option("--port", default=5001, show_default=True, type=int)
+def web(host: str, port: int) -> None:
+    """Launch the local web UI (Flask + SSE). Install with: pip install -e '.[web]'."""
+    try:
+        from .web import create_app
+    except ImportError as e:
+        raise click.ClickException(
+            f"Web UI deps missing ({e}). Install with: pip install -e '.[web]'"
+        )
+    app = create_app()
+    click.secho(f"→ http://{host}:{port}  (Ctrl-C to stop)", fg="green")
+    # debug=False is deliberate: exposing the Werkzeug debugger is a known RCE.
+    app.run(host=host, port=port, debug=False, threaded=True)
+
+
 if __name__ == "__main__":
     cli()
