@@ -21,9 +21,10 @@ def completed_job(tmp_path, monkeypatch):
     monkeypatch.setattr(web, "build_panel_prompt", lambda *a: "synthetic")
     monkeypatch.setattr(web, "compose_webtoon", lambda *a, **kw: None)
     job = web.Job("offline-job", "test", 6, None)
-    monkeypatch.setitem(web.JOBS, job.id, job)
+    app = web.create_app(tmp_path)
+    app.extensions["manhwa_jobs"][job.id] = job
     web._run_job(job, tmp_path)
-    return web.create_app(tmp_path), job
+    return app, job
 
 
 def events(body):
@@ -83,8 +84,8 @@ def test_retained_window_and_terminal_error(tmp_path, monkeypatch):
         job.events.publish("panel", {"idx": i})
     job.events.publish("error", {"message": "synthetic failure"})
     job.events.finish()
-    monkeypatch.setitem(web.JOBS, job.id, job)
     app = web.create_app(tmp_path)
+    app.extensions["manhwa_jobs"][job.id] = job
     url = f"/api/stream/{job.id}"
     assert app.test_client().get(url, headers={"Last-Event-ID": "1"}).status_code == 409
     ok = app.test_client().get(url, headers={"Last-Event-ID": "2"})
@@ -94,9 +95,9 @@ def test_retained_window_and_terminal_error(tmp_path, monkeypatch):
 
 def test_live_heartbeat_then_fanout(tmp_path, monkeypatch):
     job = web.Job("live-job", "test", 6, None)
-    monkeypatch.setitem(web.JOBS, job.id, job)
     monkeypatch.setattr(web, "_HEARTBEAT_SECONDS", 0)
     app = web.create_app(tmp_path)
+    app.extensions["manhwa_jobs"][job.id] = job
     url = f"/api/stream/{job.id}"
     with app.test_client().get(url, buffered=False) as first:
         with app.test_client().get(url, buffered=False) as second:
@@ -112,10 +113,10 @@ def test_live_heartbeat_then_fanout(tmp_path, monkeypatch):
 def test_lagging_stream_gets_structured_error(tmp_path, monkeypatch):
     job = web.Job("lag-job", "test", 6, None)
     job.events = web.ProgressLog(capacity=1)
-    monkeypatch.setitem(web.JOBS, job.id, job)
     job.events.publish("script", {"title": "Hello"})
     url = f"/api/stream/{job.id}"
     app = web.create_app(tmp_path)
+    app.extensions["manhwa_jobs"][job.id] = job
     with app.test_client().get(url, buffered=False) as response:
         reader = iter(response.response)
         assert events(next(reader))[0][:2] == (1, "script")
