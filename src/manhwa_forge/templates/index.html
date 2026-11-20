@@ -127,9 +127,17 @@ form.addEventListener("submit", async (e) => {
         errBox.textContent = d.message || "unknown error";
         errBox.classList.add("active");
         pill.textContent = "error"; pill.classList.add("er");
+        es.close(); go.disabled = false;
       } catch (_) {}
     }
-    if (es.readyState === EventSource.CLOSED) go.disabled = false;
+    if (es.readyState === EventSource.CLOSED) {
+      if (!ev.data) {
+        errBox.textContent = "Progress connection closed. The job may still be running.";
+        errBox.classList.add("active");
+        pill.textContent = "disconnected"; pill.classList.add("er");
+      }
+      go.disabled = false;
+    }
   });
 });
 </script>
