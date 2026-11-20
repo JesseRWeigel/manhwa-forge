@@ -126,6 +126,10 @@ manhwa-forge web --host 127.0.0.1 --port 5001
 
 The web UI is **localhost only** and ships with no authentication. Do not expose it to the public internet.
 
+Multiple tabs can watch the same job. If a connection drops, the browser can
+resume from its last progress event while the server is running. Each job keeps
+its latest 64 events in memory; the stream does not survive a server restart.
+
 ## Usage
 
 ### Generate from scratch

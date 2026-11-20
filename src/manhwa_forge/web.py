@@ -8,16 +8,16 @@ Design:
   * One threading.Thread per job runs a tiny inline copy of the pipeline
     (script -> per-panel -> compose) so we can emit SSE events between
     steps without touching pipeline.py.
-  * Progress flows through a per-job queue.Queue; the SSE view drains it.
+  * Each job keeps a bounded, replayable event log; SSE readers do not drain it.
   * Jobs live in an in-memory dict — they vanish when the server restarts.
 """
 from __future__ import annotations
 
 import json
-import queue
 import threading
 import traceback
 import uuid
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -29,8 +29,59 @@ from .prompts import build_panel_prompt, size_for_framing
 from .render import ErnieClient, wait_for_server
 from .story import generate_script
 
-# Sentinel tells the SSE generator to close the stream.
-_SSE_DONE = object()
+# The current UI targets up to 60 panels (plus two for story pacing),
+# with one script event and one terminal event.
+_PROGRESS_CAPACITY = 64
+_HEARTBEAT_SECONDS = 15.0
+
+
+class CursorExpired(ValueError):
+    """The reader fell behind the retained event window."""
+
+
+class ProgressLog:
+    """Bounded per-job in-memory history with independent reader cursors."""
+
+    def __init__(self, capacity: int = _PROGRESS_CAPACITY):
+        if capacity < 1:
+            raise ValueError("progress capacity must be positive")
+        self._entries: deque[tuple[int, str, str]] = deque(maxlen=capacity)
+        self._condition = threading.Condition()
+        self._last_id = 0
+        self._finished = False
+
+    def publish(self, name: str, payload: Any) -> None:
+        encoded = json.dumps(payload)
+        with self._condition:
+            self._last_id += 1
+            self._entries.append((self._last_id, name, encoded))
+            self._condition.notify_all()
+
+    def finish(self) -> None:
+        with self._condition:
+            self._finished = True
+            self._condition.notify_all()
+
+    def should_stop(self, cursor: int) -> bool:
+        with self._condition:
+            if cursor > self._last_id:
+                raise ValueError("Last-Event-ID is ahead of job progress")
+            self._check_window(cursor)
+            return self._finished and cursor == self._last_id
+
+    def _check_window(self, cursor: int) -> None:
+        if self._entries and cursor < self._entries[0][0] - 1:
+            raise CursorExpired("Progress history expired; the existing job may still be running.")
+
+    def after(self, cursor: int, timeout: float) -> tuple[tuple[int, str, str] | None, bool]:
+        with self._condition:
+            self._condition.wait_for(
+                lambda: cursor < self._last_id or self._finished, timeout=timeout
+            )
+            self._check_window(cursor)
+            if cursor < self._last_id:
+                return self._entries[cursor + 1 - self._entries[0][0]], False
+            return None, self._finished
 
 
 @dataclass
@@ -45,7 +96,7 @@ class Job:
     panel_paths: list[Path] = field(default_factory=list)
     final_chapter_path: Path | None = None
     error: str | None = None
-    events: queue.Queue = field(default_factory=queue.Queue)
+    events: ProgressLog = field(default_factory=ProgressLog)
 
 
 # Module-level registry. Lock guards inserts; dict reads are atomic in CPython.
@@ -53,17 +104,17 @@ JOBS: dict[str, Job] = {}
 _JOBS_LOCK = threading.Lock()
 
 
-def _sse(event: str, data: Any) -> str:
-    payload = json.dumps(data) if not isinstance(data, str) else data
-    return f"event: {event}\ndata: {payload}\n\n"
+def _sse(event: str, encoded: str, *, event_id: int | None = None) -> str:
+    prefix = f"id: {event_id}\n" if event_id is not None else ""
+    return f"{prefix}event: {event}\ndata: {encoded}\n\n"
 
 
 def _run_job(job: Job, out_root: Path) -> None:
     """Worker body. Any exception becomes an 'error' SSE event, never crashes."""
     job_dir = out_root / job.id
     panels_dir = job_dir / "panels"
-    panels_dir.mkdir(parents=True, exist_ok=True)
     try:
+        panels_dir.mkdir(parents=True, exist_ok=True)
         job.status = "running"
         ernie = ErnieClient()
         if not wait_for_server(ernie, timeout_s=10):
@@ -73,10 +124,10 @@ def _run_job(job: Job, out_root: Path) -> None:
         script = generate_script(job.idea, job.n_panels, job.style_hint)
         job.script = script
         (job_dir / "script.json").write_text(script.model_dump_json(indent=2))
-        job.events.put(("script", {
+        job.events.publish("script", {
             "title": script.title, "synopsis": script.synopsis,
             "style": script.style, "n_panels": len(script.panels),
-        }))
+        })
 
         # Phase 2 — per-panel render, one SSE event each.
         for beat in script.panels:
@@ -86,25 +137,25 @@ def _run_job(job: Job, out_root: Path) -> None:
             ernie.generate_to_file(path, prompt=prompt, height=h, width=w, seed=42 + beat.idx)
             (panels_dir / f"panel_{beat.idx:02d}.prompt.txt").write_text(prompt)
             job.panel_paths.append(path)
-            job.events.put(("panel", {
+            job.events.publish("panel", {
                 "idx": beat.idx, "total": len(script.panels),
                 "url": f"/api/image/{job.id}/panels/panel_{beat.idx:02d}.png",
                 "framing": beat.framing, "dialogue": beat.dialogue, "caption": beat.caption,
-            }))
+            })
 
         # Phase 3 — composite tall chapter PNG.
         final_path = job_dir / "chapter.png"
         compose_webtoon(job.panel_paths, final_path, title=script.title)
         job.final_chapter_path = final_path
         job.status = "done"
-        job.events.put(("done", {"url": f"/api/image/{job.id}/chapter.png", "title": script.title}))
+        job.events.publish("done", {"url": f"/api/image/{job.id}/chapter.png", "title": script.title})
     except Exception as e:
         job.status = "error"
         job.error = f"{type(e).__name__}: {e}"
         traceback.print_exc()
-        job.events.put(("error", {"message": job.error}))
+        job.events.publish("error", {"message": job.error})
     finally:
-        job.events.put(_SSE_DONE)
+        job.events.finish()
 
 
 def create_app(out_root: Path | None = None) -> Flask:
@@ -149,18 +200,34 @@ def create_app(out_root: Path | None = None) -> Flask:
         if job is None:
             return jsonify(error="unknown job_id"), 404
 
+        raw_cursor = request.headers.get("Last-Event-ID") or "0"
+        if len(raw_cursor) > 20 or not (raw_cursor.isascii() and raw_cursor.isdecimal()):
+            return jsonify(error="Last-Event-ID must be a non-negative integer"), 400
+        start = int(raw_cursor)
+        try:
+            if job.events.should_stop(start):
+                # EventSource treats 204 as an instruction not to reconnect.
+                return Response(status=204)
+        except CursorExpired as exc:
+            return jsonify(error=str(exc)), 409
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+
         def stream():
-            # Heartbeat every ~15s so proxies don't drop the connection.
+            cursor = start
             while True:
                 try:
-                    item = job.events.get(timeout=15.0)
-                except queue.Empty:
+                    item, finished = job.events.after(cursor, _HEARTBEAT_SECONDS)
+                except CursorExpired as exc:
+                    yield _sse("error", json.dumps({"message": str(exc)}))
+                    return
+                if item is None:
+                    if finished:
+                        return
                     yield ": keepalive\n\n"
                     continue
-                if item is _SSE_DONE:
-                    break
-                name, payload = item
-                yield _sse(name, payload)
+                cursor, name, payload = item
+                yield _sse(name, payload, event_id=cursor)
 
         return Response(stream(), mimetype="text/event-stream", headers={
             "Cache-Control": "no-cache",
