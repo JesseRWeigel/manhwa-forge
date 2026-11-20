@@ -38,8 +38,9 @@ def compose_webtoon(
     resized = []
     for im in images:
         if im.width != target_w:
-            ratio = target_w / im.width
-            im = im.resize((target_w, int(im.height * ratio)), Image.LANCZOS)
+            # A valid thin panel may round down to zero rows. Keep one row.
+            target_h = max(1, im.height * target_w // im.width)
+            im = im.resize((target_w, target_h), Image.LANCZOS)
         resized.append(im)
 
     # Optional title banner at top
