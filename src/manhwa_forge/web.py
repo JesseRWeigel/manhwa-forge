@@ -9,21 +9,23 @@ Design:
     (script -> per-panel -> compose) so we can emit SSE events between
     steps without touching pipeline.py.
   * Each job keeps a bounded, replayable event log; SSE readers do not drain it.
-  * Jobs live in an in-memory dict — they vanish when the server restarts.
+  * Live jobs and SSE history are in memory; job status is indexed on disk.
 """
 from __future__ import annotations
 
 import json
+import sqlite3
 import threading
 import traceback
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from flask import Flask, Response, jsonify, render_template, request, send_from_directory
 
+from .job_status import JobStatusStore, valid_job_id
 from .layout import compose_webtoon
 from .prompts import build_panel_prompt, size_for_framing
 from .render import ErnieClient, wait_for_server
@@ -97,11 +99,12 @@ class Job:
     final_chapter_path: Path | None = None
     error: str | None = None
     events: ProgressLog = field(default_factory=ProgressLog)
+    record_status: Callable[[str], None] | None = field(default=None, repr=False)
 
-
-# Module-level registry. Lock guards inserts; dict reads are atomic in CPython.
-JOBS: dict[str, Job] = {}
-_JOBS_LOCK = threading.Lock()
+    def set_status(self, status: str) -> None:
+        if self.record_status is not None:
+            self.record_status(status)
+        self.status = status
 
 
 def _sse(event: str, encoded: str, *, event_id: int | None = None) -> str:
@@ -115,7 +118,7 @@ def _run_job(job: Job, out_root: Path) -> None:
     panels_dir = job_dir / "panels"
     try:
         panels_dir.mkdir(parents=True, exist_ok=True)
-        job.status = "running"
+        job.set_status("running")
         ernie = ErnieClient()
         if not wait_for_server(ernie, timeout_s=10):
             raise RuntimeError(f"ERNIE server not reachable at {ernie.host}.")
@@ -147,12 +150,18 @@ def _run_job(job: Job, out_root: Path) -> None:
         final_path = job_dir / "chapter.png"
         compose_webtoon(job.panel_paths, final_path, title=script.title)
         job.final_chapter_path = final_path
-        job.status = "done"
+        job.set_status("done")
         job.events.publish("done", {"url": f"/api/image/{job.id}/chapter.png", "title": script.title})
     except Exception as e:
-        job.status = "error"
         job.error = f"{type(e).__name__}: {e}"
         traceback.print_exc()
+        try:
+            job.set_status("error")
+        except sqlite3.Error:
+            # The worker failed but an unhealthy database may still show running.
+            # Never broadcast a successful terminal event in that case.
+            traceback.print_exc()
+            job.status = "error"
         job.events.publish("error", {"message": job.error})
     finally:
         job.events.finish()
@@ -162,7 +171,12 @@ def create_app(out_root: Path | None = None) -> Flask:
     """Flask app factory. `out_root` defaults to ./outputs/web."""
     app = Flask(__name__, template_folder="templates")
     app.config["OUT_ROOT"] = Path(out_root) if out_root else Path("outputs/web")
-    app.config["OUT_ROOT"].mkdir(parents=True, exist_ok=True)
+    root = app.config["OUT_ROOT"].resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    status_store = JobStatusStore(root / ".web-job-status.sqlite3", uuid.uuid4().hex)
+    jobs: dict[str, Job] = {}
+    app.extensions["manhwa_jobs"] = jobs
+    jobs_lock = threading.Lock()
     # Tests monkey-patch RUN_JOB to skip ERNIE/LLM calls.
     app.config["RUN_JOB"] = _run_job
 
@@ -184,19 +198,50 @@ def create_app(out_root: Path | None = None) -> Flask:
         style_hint = (data.get("style") or "").strip() or None
 
         job = Job(id=uuid.uuid4().hex[:12], idea=idea, n_panels=n_panels, style_hint=style_hint)
-        with _JOBS_LOCK:
-            JOBS[job.id] = job
+        try:
+            status_store.reserve(job.id)
+        except sqlite3.Error:
+            app.logger.exception("Could not durably record job before launching")
+            return jsonify(error="Job could not be recorded; no worker was started"), 503
+        job.record_status = lambda status: status_store.transition(job.id, status)
+        with jobs_lock:
+            jobs[job.id] = job
 
         run_job = app.config["RUN_JOB"]
-        threading.Thread(
-            target=run_job, args=(job, app.config["OUT_ROOT"]),
-            daemon=True, name=f"manhwa-job-{job.id}",
-        ).start()
+        worker = threading.Thread(
+            target=run_job, args=(job, root), daemon=True, name=f"manhwa-job-{job.id}",
+        )
+        try:
+            worker.start()
+        except RuntimeError:
+            with jobs_lock:
+                jobs.pop(job.id, None)
+            try:
+                job.set_status("error")
+            except sqlite3.Error:
+                app.logger.exception("Could not record failure to start job")
+            return jsonify(error="Job worker could not start", job_id=job.id), 503
         return jsonify(job_id=job.id)
+
+    @app.get("/api/jobs/<job_id>")
+    def api_job_status(job_id: str):
+        if not valid_job_id(job_id):
+            return jsonify(error="unknown job_id"), 404
+        try:
+            status = status_store.read(job_id)
+        except sqlite3.Error:
+            app.logger.exception("Could not read durable job status")
+            return jsonify(error="Job status unavailable"), 503
+        if status is None:
+            return jsonify(error="unknown job_id"), 404
+        response = jsonify(job_id=job_id, status=status)
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     @app.get("/api/stream/<job_id>")
     def api_stream(job_id: str):
-        job = JOBS.get(job_id)
+        with jobs_lock:
+            job = jobs.get(job_id)
         if job is None:
             return jsonify(error="unknown job_id"), 404
 
@@ -236,8 +281,11 @@ def create_app(out_root: Path | None = None) -> Flask:
 
     @app.get("/api/image/<job_id>/<path:filename>")
     def api_image(job_id: str, filename: str):
-        # send_from_directory protects against path traversal.
-        return send_from_directory(app.config["OUT_ROOT"] / job_id, filename)
+        # Validate the directory component separately from Flask's filename checks.
+        # The status index stays outside any per-job serving directory.
+        if not valid_job_id(job_id):
+            return jsonify(error="unknown job_id"), 404
+        return send_from_directory(root / job_id, filename)
 
     return app
 

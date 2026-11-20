@@ -130,6 +130,15 @@ Multiple tabs can watch the same job. If a connection drops, the browser can
 resume from its last progress event while the server is running. Each job keeps
 its latest 64 events in memory; the stream does not survive a server restart.
 
+For local integrations, use the `job_id` from `POST /api/generate` with
+`GET /api/jobs/<job_id>`. A small SQLite index in the output directory keeps
+job IDs and statuses, not prompts or error text. A fresh server instance reports
+an unfinished job from the previous instance as `interrupted`; it does not
+restart it or call providers. Completed and failed jobs retain their recorded
+status, but that status does not restore an event stream or guarantee that
+output files haven't been changed or removed. Older jobs without a record
+return 404. Run only one server at a time against each output directory.
+
 ## Usage
 
 ### Generate from scratch
