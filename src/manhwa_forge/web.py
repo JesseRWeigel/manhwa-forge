@@ -126,7 +126,7 @@ def _run_job(job: Job, out_root: Path) -> None:
         # Phase 1 — script (slow LLM call).
         script = generate_script(job.idea, job.n_panels, job.style_hint)
         job.script = script
-        (job_dir / "script.json").write_text(script.model_dump_json(indent=2))
+        (job_dir / "script.json").write_text(script.model_dump_json(indent=2), encoding="utf-8")
         job.events.publish("script", {
             "title": script.title, "synopsis": script.synopsis,
             "style": script.style, "n_panels": len(script.panels),
@@ -138,7 +138,7 @@ def _run_job(job: Job, out_root: Path) -> None:
             prompt = build_panel_prompt(beat, script)
             path = panels_dir / f"panel_{beat.idx:02d}.png"
             ernie.generate_to_file(path, prompt=prompt, height=h, width=w, seed=42 + beat.idx)
-            (panels_dir / f"panel_{beat.idx:02d}.prompt.txt").write_text(prompt)
+            (panels_dir / f"panel_{beat.idx:02d}.prompt.txt").write_text(prompt, encoding="utf-8")
             job.panel_paths.append(path)
             job.events.publish("panel", {
                 "idx": beat.idx, "total": len(script.panels),

@@ -40,7 +40,7 @@ def generate_chapter(
     if verbose:
         print(f"[1/3] Drafting script ({n_panels} panels)...")
     script = generate_script(idea, n_panels, style_hint, llm)
-    (out_dir / "script.json").write_text(script.model_dump_json(indent=2))
+    (out_dir / "script.json").write_text(script.model_dump_json(indent=2), encoding="utf-8")
     if verbose:
         print(f"      title: {script.title}")
         print(f"      style: {script.style}")
@@ -61,7 +61,7 @@ def generate_chapter(
             dialogue_hint = f' "{beat.dialogue[:30]}..."' if beat.dialogue else ""
             print(f"      [{beat.idx:02d}/{len(script.panels)-1}] {beat.framing:18s} {time.time()-t:.1f}s{dialogue_hint}")
         # persist per-panel prompt for debugging/iteration
-        (panels_dir / f"panel_{beat.idx:02d}.prompt.txt").write_text(prompt)
+        (panels_dir / f"panel_{beat.idx:02d}.prompt.txt").write_text(prompt, encoding="utf-8")
 
     # Phase 3 — composite
     if verbose:
@@ -82,7 +82,7 @@ def generate_chapter(
         final_chapter_path=str(final_path),
         total_elapsed_s=round(elapsed, 1),
     )
-    (out_dir / "manifest.json").write_text(manifest.model_dump_json(indent=2))
+    (out_dir / "manifest.json").write_text(manifest.model_dump_json(indent=2), encoding="utf-8")
     if verbose:
         print(f"\nDone in {elapsed:.1f}s.  Chapter: {final_path}")
     return manifest

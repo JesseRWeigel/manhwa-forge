@@ -43,7 +43,7 @@ def render_script(script_path: Path, out_dir: Path, seed: int) -> None:
     from .layout import compose_webtoon
     import time
 
-    script = ChapterScript.model_validate_json(script_path.read_text())
+    script = ChapterScript.model_validate_json(script_path.read_text(encoding="utf-8"))
     out_dir.mkdir(parents=True, exist_ok=True)
     panels_dir = out_dir / "panels"
     panels_dir.mkdir(exist_ok=True)
