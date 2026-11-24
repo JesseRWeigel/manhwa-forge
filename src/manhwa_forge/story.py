@@ -224,8 +224,11 @@ def generate_script(
         client = get_default_client()
     raw = client.complete(SYSTEM_PROMPT, _user_prompt(idea, n_panels, style_hint))
     data = _extract_json(raw)
+    panel_data = data.get("panels")
+    if not isinstance(panel_data, list) or not panel_data:
+        raise ValueError("Story provider returned no usable panel list (expected a non-empty list)")
     # coerce panel indices in case the LLM mis-numbered
-    panels = [PanelBeat(**{**p, "idx": i}) for i, p in enumerate(data["panels"])]
+    panels = [PanelBeat(**{**p, "idx": i}) for i, p in enumerate(panel_data)]
     from .models import CharacterSheet
     characters = [CharacterSheet(**c) for c in data.get("characters", [])]
     return ChapterScript(
