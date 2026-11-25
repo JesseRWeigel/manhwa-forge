@@ -167,3 +167,40 @@ os._exit(0)
     client = web.create_app(tmp_path).test_client()
     assert client.get(f"/api/jobs/{job_id}").get_json()["status"] == "interrupted"
     assert client.get(f"/api/stream/{job_id}").status_code == 404
+
+
+def test_generation_rejects_invalid_json_before_launch(tmp_path):
+    app = web.create_app(tmp_path)
+    starts = []
+    app.config["RUN_JOB"] = lambda *args: starts.append(True)
+    client = app.test_client()
+    for payload, field in [
+        (["not an object"], "JSON object"),
+        ({"idea": ["not a string"]}, "idea"),
+        ({"idea": "valid idea", "style": 5}, "style"),
+        ({"idea": "valid idea", "panels": 8.5}, "panels"),
+        ({"idea": "valid idea", "panels": True}, "panels"),
+    ]:
+        result = client.post("/api/generate", json=payload)
+        assert result.status_code == 400, payload
+        assert field in result.get_json()["error"]
+    assert not starts
+    assert not app.extensions["manhwa_jobs"]
+
+
+def test_generation_still_accepts_form_values(tmp_path):
+    app = web.create_app(tmp_path)
+    started = threading.Event()
+    received = []
+
+    def fake_worker(job, root):
+        received.append((job.idea, job.n_panels, job.style_hint))
+        started.set()
+
+    app.config["RUN_JOB"] = fake_worker
+    result = app.test_client().post(
+        "/api/generate", data={"idea": " test idea ", "panels": "8", "style": " ink "}
+    )
+    assert result.status_code == 200
+    assert started.wait(1)
+    assert received == [("test idea", 8, "ink")]
