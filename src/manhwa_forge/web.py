@@ -186,16 +186,31 @@ def create_app(out_root: Path | None = None) -> Flask:
 
     @app.post("/api/generate")
     def api_generate():
-        data = request.get_json(silent=True) or request.form
-        idea = (data.get("idea") or "").strip()
-        if not idea:
-            return jsonify(error="idea is required"), 400
+        if request.is_json:
+            data = request.get_json(silent=True)
+            if not isinstance(data, dict):
+                return jsonify(error="generation request must be a JSON object"), 400
+        else:
+            data = request.form
+
+        idea = data.get("idea")
+        if not isinstance(idea, str) or not idea.strip():
+            return jsonify(error="idea is required and must be text"), 400
+        idea = idea.strip()
+
+        style = data.get("style")
+        if style is not None and not isinstance(style, str):
+            return jsonify(error="style must be text"), 400
+        style_hint = (style or "").strip() or None
+
+        panel_value = data.get("panels")
+        if panel_value is not None and type(panel_value) not in (int, str):
+            return jsonify(error="panels must be an integer"), 400
         try:
-            n_panels = int(data.get("panels") or 30)
-        except (TypeError, ValueError):
+            n_panels = int(panel_value or 30)
+        except ValueError:
             return jsonify(error="panels must be an integer"), 400
         n_panels = max(6, min(60, n_panels))
-        style_hint = (data.get("style") or "").strip() or None
 
         job = Job(id=uuid.uuid4().hex[:12], idea=idea, n_panels=n_panels, style_hint=style_hint)
         try:
