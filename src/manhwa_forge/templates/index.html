@@ -113,31 +113,57 @@ form.addEventListener("submit", async (e) => {
     }
     pill.textContent = `${done} / ${total}`;
   });
-  es.addEventListener("done", (ev) => {
-    const d = JSON.parse(ev.data);
+  let terminal = false;
+  function showDone(url) {
     pill.textContent = "done"; pill.classList.add("ok");
-    finalLink.href = d.url; finalBox.classList.add("active");
-    es.close(); go.disabled = false;
+    finalLink.href = url; finalBox.classList.add("active");
+  }
+  function showError(message, label = "error") {
+    errBox.textContent = message; errBox.classList.add("active");
+    pill.textContent = label; pill.classList.add("er");
+  }
+  es.addEventListener("done", (ev) => {
+    if (terminal) return;
+    const d = JSON.parse(ev.data);
+    terminal = true; es.close();
+    showDone(d.url); go.disabled = false;
   });
-  es.addEventListener("error", (ev) => {
-    // Nameless "error" fires on connection close too — only show structured payloads.
+  es.addEventListener("error", async (ev) => {
+    if (terminal) return;
     if (ev.data) {
-      try {
-        const d = JSON.parse(ev.data);
-        errBox.textContent = d.message || "unknown error";
-        errBox.classList.add("active");
-        pill.textContent = "error"; pill.classList.add("er");
-        es.close(); go.disabled = false;
-      } catch (_) {}
-    }
-    if (es.readyState === EventSource.CLOSED) {
-      if (!ev.data) {
-        errBox.textContent = "Progress connection closed. The job may still be running.";
-        errBox.classList.add("active");
-        pill.textContent = "disconnected"; pill.classList.add("er");
+      let d;
+      try { d = JSON.parse(ev.data); } catch (_) {}
+      if (d) {
+        terminal = true; es.close();
+        showError(d.message || "unknown error"); go.disabled = false;
+        return;
       }
+    }
+    // Let EventSource handle temporary reconnects. A permanently closed stream
+    // may have missed the last event, so check the persisted state once.
+    if (es.readyState !== EventSource.CLOSED) return;
+    terminal = true;
+    try {
+      const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (r.ok) {
+        const {status} = await r.json();
+        if (status === "done") {
+          showDone(`/api/image/${encodeURIComponent(jobId)}/chapter.png`);
+          return;
+        }
+        if (status === "interrupted" || status === "error") {
+          showError(status === "interrupted" ? "The render was interrupted." : "The render failed.");
+          return;
+        }
+      }
+    } catch (_) {
+      // A failed lookup is not evidence that the worker stopped.
+    } finally {
       go.disabled = false;
     }
+    showError("Progress connection closed. The job may still be running.", "disconnected");
   });
 });
 </script>
