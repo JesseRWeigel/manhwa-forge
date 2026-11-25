@@ -44,6 +44,14 @@ def render_script(script_path: Path, out_dir: Path, seed: int) -> None:
     import time
 
     script = ChapterScript.model_validate_json(script_path.read_text(encoding="utf-8"))
+    if not script.panels:
+        raise click.ClickException("Script must contain at least one panel")
+    seen_indices: set[int] = set()
+    for beat in script.panels:
+        if beat.idx in seen_indices:
+            raise click.ClickException(f"Duplicate panel index: {beat.idx}")
+        seen_indices.add(beat.idx)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     panels_dir = out_dir / "panels"
     panels_dir.mkdir(exist_ok=True)
