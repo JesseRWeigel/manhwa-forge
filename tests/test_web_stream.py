@@ -110,7 +110,7 @@ def test_live_heartbeat_then_fanout(tmp_path, monkeypatch):
             assert events(b"".join(a)) == events(b"".join(b)) == [(2, "done", {"title": "Hello"})]
 
 
-def test_lagging_stream_gets_structured_error(tmp_path, monkeypatch):
+def test_lagging_stream_gets_progress_expired_event(tmp_path, monkeypatch):
     job = web.Job("lag-job", "test", 6, None)
     job.events = web.ProgressLog(capacity=1)
     job.events.publish("script", {"title": "Hello"})
@@ -123,6 +123,6 @@ def test_lagging_stream_gets_structured_error(tmp_path, monkeypatch):
         job.events.publish("panel", {"idx": 0})
         job.events.publish("panel", {"idx": 1})
         error = b"".join(reader)
-    assert error.startswith(b"event: error\ndata: ")
+    assert error.startswith(b"event: progress-expired\ndata: ")
     assert "history expired" in json.loads(error.decode().split("data: ")[1])["message"]
     assert not job.events.should_stop(3)

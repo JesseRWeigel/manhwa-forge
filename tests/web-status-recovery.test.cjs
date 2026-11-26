@@ -120,3 +120,22 @@ test("another submit while rendering does not send a second POST", async () => {
   await element("f").listeners.submit({preventDefault() {}});
   assert.deepEqual(requests, ["/api/generate"]);
 });
+
+test("expired progress recovers a completed chapter without another render", async () => {
+  const {element, stream, requests} = await launch("done");
+  await stream.listeners["progress-expired"]?.({data: '{"message":"history expired"}'});
+  await stream.listeners.error({});
+  assert.deepEqual(requests, ["/api/generate", "/api/jobs/d9c1f2409aa2"]);
+  assert.equal(element("statusPill").textContent, "done");
+  assert.equal(element("finalLink").href, "/api/image/d9c1f2409aa2/chapter.png");
+  assert.equal(element("go").disabled, false);
+});
+
+test("expired progress does not label a still-running job as failed", async () => {
+  const {element, stream, requests} = await launch("running");
+  await stream.listeners["progress-expired"]?.({});
+  assert.deepEqual(requests, ["/api/generate", "/api/jobs/d9c1f2409aa2"]);
+  assert.equal(element("statusPill").textContent, "disconnected");
+  assert.match(element("errBox").textContent, /may still be running/i);
+  assert.equal(element("go").disabled, false);
+});
