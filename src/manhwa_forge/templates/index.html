@@ -84,7 +84,11 @@ function makeSlot(i) {
 }
 
 form.addEventListener("submit", async (e) => {
-  e.preventDefault(); reset(); progress.classList.add("active"); go.disabled = true;
+  e.preventDefault();
+  if (go.disabled) return;
+  go.disabled = true;
+  progress.classList.add("active");
+  errBox.classList.remove("active"); errBox.textContent = "";
   const body = {idea: $("idea").value, panels: $("panels").value, style: $("style").value};
   let jobId;
   try {
@@ -95,6 +99,7 @@ form.addEventListener("submit", async (e) => {
     errBox.textContent = "Failed to start: " + err.message;
     errBox.classList.add("active"); go.disabled = false; return;
   }
+  reset();
   const es = new EventSource(`/api/stream/${jobId}`);
   let total = 0, done = 0;
   es.addEventListener("script", (ev) => {
