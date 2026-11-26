@@ -204,3 +204,56 @@ def test_generation_still_accepts_form_values(tmp_path):
     assert result.status_code == 200
     assert started.wait(1)
     assert received == [("test idea", 8, "ink")]
+
+
+def test_busy_server_rejects_without_reserving_or_launching(tmp_path):
+    started = threading.Event()
+    done = threading.Event()
+    workers = []
+
+    def fake_worker(job, root):
+        workers.append(threading.current_thread())
+        job.set_status("running")
+        started.set()
+        assert done.wait(3)
+        job.set_status("done")
+
+    app = web.create_app(tmp_path)
+    app.config["RUN_JOB"] = fake_worker
+    first = app.test_client()
+    second = app.test_client()
+    assert first.post("/api/generate", json={"idea": "first"}).status_code == 200
+    try:
+        assert started.wait(1)
+        assert second.post("/api/generate", json=[]).status_code == 400
+        rejected = second.post("/api/generate", json={"idea": "second"})
+        assert rejected.status_code == 429
+        assert "render" in rejected.get_json()["error"]
+        with sqlite3.connect(tmp_path / ".web-job-status.sqlite3") as db:
+            assert db.execute("SELECT count(*) FROM jobs").fetchone() == (1,)
+    finally:
+        done.set()
+        for worker in list(workers):
+            worker.join(2)
+    assert len(workers) == 1
+    retried = threading.Event()
+    app.config["RUN_JOB"] = lambda *args: retried.set()
+    assert second.post("/api/generate", json={"idea": "retry"}).status_code == 200
+    assert retried.wait(1)
+
+
+def test_launch_failure_releases_render_slot(tmp_path, monkeypatch):
+    app = web.create_app(tmp_path)
+    client = app.test_client()
+
+    def reject(self):
+        raise RuntimeError("synthetic start failure")
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(web.threading.Thread, "start", reject)
+        assert client.post("/api/generate", json={"idea": "first"}).status_code == 503
+
+    started = threading.Event()
+    app.config["RUN_JOB"] = lambda *args: started.set()
+    assert client.post("/api/generate", json={"idea": "retry"}).status_code == 200
+    assert started.wait(1)
