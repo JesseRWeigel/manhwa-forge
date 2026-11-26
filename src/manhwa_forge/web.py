@@ -177,6 +177,7 @@ def create_app(out_root: Path | None = None) -> Flask:
     jobs: dict[str, Job] = {}
     app.extensions["manhwa_jobs"] = jobs
     jobs_lock = threading.Lock()
+    render_slot = threading.BoundedSemaphore(1)
     # Tests monkey-patch RUN_JOB to skip ERNIE/LLM calls.
     app.config["RUN_JOB"] = _run_job
 
@@ -212,31 +213,47 @@ def create_app(out_root: Path | None = None) -> Flask:
             return jsonify(error="panels must be an integer"), 400
         n_panels = max(6, min(60, n_panels))
 
-        job = Job(id=uuid.uuid4().hex[:12], idea=idea, n_panels=n_panels, style_hint=style_hint)
-        try:
-            status_store.reserve(job.id)
-        except sqlite3.Error:
-            app.logger.exception("Could not durably record job before launching")
-            return jsonify(error="Job could not be recorded; no worker was started"), 503
-        job.record_status = lambda status: status_store.transition(job.id, status)
-        with jobs_lock:
-            jobs[job.id] = job
+        if not render_slot.acquire(blocking=False):
+            return jsonify(error="A render is already running. Try again when it finishes."), 429
 
-        run_job = app.config["RUN_JOB"]
-        worker = threading.Thread(
-            target=run_job, args=(job, root), daemon=True, name=f"manhwa-job-{job.id}",
-        )
+        launched = False
         try:
-            worker.start()
-        except RuntimeError:
-            with jobs_lock:
-                jobs.pop(job.id, None)
+            job = Job(id=uuid.uuid4().hex[:12], idea=idea, n_panels=n_panels, style_hint=style_hint)
             try:
-                job.set_status("error")
+                status_store.reserve(job.id)
             except sqlite3.Error:
-                app.logger.exception("Could not record failure to start job")
-            return jsonify(error="Job worker could not start", job_id=job.id), 503
-        return jsonify(job_id=job.id)
+                app.logger.exception("Could not durably record job before launching")
+                return jsonify(error="Job could not be recorded; no worker was started"), 503
+            job.record_status = lambda status: status_store.transition(job.id, status)
+            with jobs_lock:
+                jobs[job.id] = job
+
+            run_job = app.config["RUN_JOB"]
+
+            def render():
+                try:
+                    run_job(job, root)
+                finally:
+                    render_slot.release()
+
+            try:
+                worker = threading.Thread(
+                    target=render, daemon=True, name=f"manhwa-job-{job.id}",
+                )
+                worker.start()
+                launched = True
+            except RuntimeError:
+                with jobs_lock:
+                    jobs.pop(job.id, None)
+                try:
+                    job.set_status("error")
+                except sqlite3.Error:
+                    app.logger.exception("Could not record failure to start job")
+                return jsonify(error="Job worker could not start", job_id=job.id), 503
+            return jsonify(job_id=job.id)
+        finally:
+            if not launched:
+                render_slot.release()
 
     @app.get("/api/jobs/<job_id>")
     def api_job_status(job_id: str):
