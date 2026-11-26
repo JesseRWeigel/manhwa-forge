@@ -7,7 +7,7 @@ const { runInNewContext } = require("node:vm");
 const template = readFileSync(join(__dirname, "../src/manhwa_forge/templates/index.html"), "utf8");
 const script = template.match(/<script>([\s\S]*?)<\/script>/)[1];
 
-async function launch(status) {
+async function launch(status, nextStartError) {
   const elements = new Map();
   const requests = [];
   function element(id) {
@@ -22,6 +22,7 @@ async function launch(status) {
     return elements.get(id);
   }
   let stream;
+  let starts = 0;
   class FakeEventSource {
     static CLOSED = 2;
     constructor() { stream = this; this.listeners = {}; this.readyState = 1; }
@@ -34,7 +35,12 @@ async function launch(status) {
     AbortSignal,
     fetch: async url => {
       requests.push(url);
-      if (url === "/api/generate") return {ok: true, json: async () => ({job_id: "d9c1f2409aa2"})};
+      if (url === "/api/generate") {
+        if (++starts > 1 && nextStartError) {
+          return {ok: false, json: async () => ({error: nextStartError})};
+        }
+        return {ok: true, json: async () => ({job_id: "d9c1f2409aa2"})};
+      }
       if (status === "unreachable") throw new Error("offline");
       return {ok: true, json: async () => ({status})};
     },
@@ -87,4 +93,30 @@ test("a structured render error is shown directly without a status lookup", asyn
   assert.equal(element("errBox").textContent, "render fixture failed");
   assert.equal(element("statusPill").textContent, "error");
   assert.equal(element("go").disabled, false);
+});
+
+test("a rejected new render keeps the preceding chapter available", async () => {
+  const {element, stream} = await launch("done", "A render is already running.");
+  stream.listeners.done({data: '{"url":"/api/image/previous/chapter.png"}'});
+  await element("f").listeners.submit({preventDefault() {}});
+  assert.equal(element("finalBox").classList.contains("active"), true);
+  assert.equal(element("finalLink").href, "/api/image/previous/chapter.png");
+  assert.equal(element("statusPill").textContent, "done");
+  assert.match(element("errBox").textContent, /already running/);
+  assert.equal(element("go").disabled, false);
+});
+
+test("a successful new render clears the preceding chapter", async () => {
+  const {element, stream} = await launch("done");
+  stream.listeners.done({data: '{"url":"/api/image/previous/chapter.png"}'});
+  await element("f").listeners.submit({preventDefault() {}});
+  assert.equal(element("finalBox").classList.contains("active"), false);
+  assert.equal(element("statusPill").textContent, "rendering…");
+  assert.equal(element("go").disabled, true);
+});
+
+test("another submit while rendering does not send a second POST", async () => {
+  const {element, requests} = await launch("done");
+  await element("f").listeners.submit({preventDefault() {}});
+  assert.deepEqual(requests, ["/api/generate"]);
 });
