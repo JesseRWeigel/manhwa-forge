@@ -133,21 +133,9 @@ form.addEventListener("submit", async (e) => {
     terminal = true; es.close();
     showDone(d.url); go.disabled = false;
   });
-  es.addEventListener("error", async (ev) => {
+  async function recoverStatus() {
     if (terminal) return;
-    if (ev.data) {
-      let d;
-      try { d = JSON.parse(ev.data); } catch (_) {}
-      if (d) {
-        terminal = true; es.close();
-        showError(d.message || "unknown error"); go.disabled = false;
-        return;
-      }
-    }
-    // Let EventSource handle temporary reconnects. A permanently closed stream
-    // may have missed the last event, so check the persisted state once.
-    if (es.readyState !== EventSource.CLOSED) return;
-    terminal = true;
+    terminal = true; es.close();
     try {
       const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
         signal: AbortSignal.timeout(5000),
@@ -169,6 +157,23 @@ form.addEventListener("submit", async (e) => {
       go.disabled = false;
     }
     showError("Progress connection closed. The job may still be running.", "disconnected");
+  }
+  es.addEventListener("progress-expired", recoverStatus);
+  es.addEventListener("error", async (ev) => {
+    if (terminal) return;
+    if (ev.data) {
+      let d;
+      try { d = JSON.parse(ev.data); } catch (_) {}
+      if (d) {
+        terminal = true; es.close();
+        showError(d.message || "unknown error"); go.disabled = false;
+        return;
+      }
+    }
+    // Let EventSource handle temporary reconnects. A permanently closed stream
+    // may have missed the last event, so check the persisted state once.
+    if (es.readyState !== EventSource.CLOSED) return;
+    await recoverStatus();
   });
 });
 </script>

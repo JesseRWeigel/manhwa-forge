@@ -296,7 +296,7 @@ def create_app(out_root: Path | None = None) -> Flask:
                 try:
                     item, finished = job.events.after(cursor, _HEARTBEAT_SECONDS)
                 except CursorExpired as exc:
-                    yield _sse("error", json.dumps({"message": str(exc)}))
+                    yield _sse("progress-expired", json.dumps({"message": str(exc)}))
                     return
                 if item is None:
                     if finished:
