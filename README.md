@@ -9,7 +9,7 @@ manhwa-forge generate \
   --out chapters/wall-inside/
 ```
 
-→ drops a ready-to-upload `chapter.png` (tall vertical scroll format) plus the
+→ writes a stitched, vertical-scroll `chapter.png` for preview and export, plus
 individual panels, the LLM-written script, and a reproducibility manifest.
 
 ## What it is
@@ -23,7 +23,7 @@ story idea (string)
 into:
 
 ```
-chapter.png            ← one tall PNG, ready for Webtoons/Tapas/Lezhin
+chapter.png            ← one tall PNG with all panels stitched together
 panels/panel_00.png    ← individual panels with dialogue bubbles rendered in-image
 panels/panel_00.prompt.txt
 script.json            ← the LLM-written beat sheet (rerun from this for free)
@@ -62,7 +62,11 @@ file issues.
    descriptions are injected verbatim into every panel they appear in, which
    keeps the same character recognizable across the chapter.
 3. **Compose** — Panels are stacked vertically into a single tall PNG with a
-   title banner, ready to upload.
+   title banner.
+
+The chapter PNG is not a platform-specific upload package. Check the publisher’s
+file specifications and content policies before uploading. For example,
+[Tapas does not allow AI-generated content](https://help.tapas.io/hc/en-us/articles/115005323707-Content-and-Community-Guidelines).
 
 ### Chapter schema
 
