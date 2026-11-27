@@ -41,3 +41,6 @@ Issues = "https://github.com/JesseRWeigel/manhwa-forge/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/manhwa_forge"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

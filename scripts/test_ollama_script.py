@@ -4,14 +4,9 @@ Writes script.json, prints key stats, and validates the result.
 """
 from __future__ import annotations
 import json
-import os
 import sys
 import time
 from pathlib import Path
-
-# Make sure we don't accidentally fall through to Anthropic even if the key
-# is exported in the shell — we're passing an explicit client anyway, but be safe.
-os.environ.pop("ANTHROPIC_API_KEY", None)
 
 from manhwa_forge.story import OllamaClient, generate_script
 from manhwa_forge.models import ChapterScript
@@ -52,8 +47,7 @@ class LongTimeoutOllamaClient(OllamaClient):
         return r.json()["message"]["content"]
 
 
-OUT_DIR = Path("/home/jesse/Projects/manhwa-forge/outputs/ollama-test")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+OUT_DIR = Path(__file__).resolve().parents[1] / "outputs" / "ollama-test"
 
 IDEA = (
     "A retired samurai opens a ramen shop in modern Tokyo. "
@@ -94,6 +88,7 @@ def run_with(model_name: str) -> ChapterScript:
 
 
 def main() -> int:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     # Primary: gemma4:26b. Fallback: qwen3.5:27b (if primary fails).
     primary = "gemma4:26b-a4b-it-q4_K_M"
     fallback = "qwen3.5:27b"
