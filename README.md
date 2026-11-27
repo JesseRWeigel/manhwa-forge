@@ -186,6 +186,19 @@ manifest = generate_chapter(
 print(manifest.final_chapter_path)
 ```
 
+## Offline tests
+
+With the package, web extra, and pytest installed, run:
+
+```sh
+python -m pytest
+node --test tests/web-status-recovery.test.cjs
+```
+
+These tests do not require Ollama, ERNIE, or a hosted model. The separate
+`scripts/test_ollama_script.py` is a manual smoke run with a real local Ollama
+model. It is not part of the default test suite.
+
 ## Running ERNIE
 
 This repo **does not** ship the image model. You need a running ERNIE-Image-Turbo
