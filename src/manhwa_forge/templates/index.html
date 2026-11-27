@@ -83,6 +83,45 @@ function makeSlot(i) {
   lbl.textContent = "#" + String(i).padStart(2, "0"); s.appendChild(lbl); return s;
 }
 
+const lastJobKey = "manhwa-forge:last-job";
+const isJobId = (id) => typeof id === "string" && /^[a-f0-9]{12}$/.test(id);
+function restoreJobId() {
+  try {
+    const id = sessionStorage.getItem(lastJobKey);
+    if (isJobId(id)) return id;
+    if (id !== null) sessionStorage.removeItem(lastJobKey);
+  } catch (_) {
+    // Rendering still works when the browser blocks session storage.
+  }
+}
+function rememberJob(id) {
+  try { sessionStorage.setItem(lastJobKey, id); } catch (_) {}
+}
+function forgetJob(id) {
+  try {
+    if (sessionStorage.getItem(lastJobKey) === id) sessionStorage.removeItem(lastJobKey);
+  } catch (_) {}
+}
+function showDone(url) {
+  pill.textContent = "done"; pill.classList.add("ok");
+  finalLink.href = url; finalBox.classList.add("active");
+}
+function showError(message, label = "error") {
+  errBox.textContent = message; errBox.classList.add("active");
+  pill.textContent = label; pill.classList.add("er");
+}
+function showFailedJob(status) {
+  showError(status === "interrupted" ? "The render was interrupted." : "The render failed.");
+}
+async function jobStatus(jobId) {
+  const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+    signal: AbortSignal.timeout(5000),
+  });
+  if (r.status === 404) return "missing";
+  return r.ok ? (await r.json()).status : null;
+}
+const chapterUrl = (jobId) => `/api/image/${encodeURIComponent(jobId)}/chapter.png`;
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (go.disabled) return;
@@ -95,11 +134,17 @@ form.addEventListener("submit", async (e) => {
     const r = await fetch("/api/generate", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(body)});
     if (!r.ok) throw new Error((await r.json()).error || r.statusText);
     jobId = (await r.json()).job_id;
+    if (!isJobId(jobId)) throw new Error("The server did not return a valid job ID.");
   } catch (err) {
     errBox.textContent = "Failed to start: " + err.message;
     errBox.classList.add("active"); go.disabled = false; return;
   }
+  rememberJob(jobId);
   reset();
+  watchJob(jobId);
+});
+
+function watchJob(jobId) {
   const es = new EventSource(`/api/stream/${jobId}`);
   let total = 0, done = 0;
   es.addEventListener("script", (ev) => {
@@ -119,14 +164,6 @@ form.addEventListener("submit", async (e) => {
     pill.textContent = `${done} / ${total}`;
   });
   let terminal = false;
-  function showDone(url) {
-    pill.textContent = "done"; pill.classList.add("ok");
-    finalLink.href = url; finalBox.classList.add("active");
-  }
-  function showError(message, label = "error") {
-    errBox.textContent = message; errBox.classList.add("active");
-    pill.textContent = label; pill.classList.add("er");
-  }
   es.addEventListener("done", (ev) => {
     if (terminal) return;
     const d = JSON.parse(ev.data);
@@ -137,20 +174,16 @@ form.addEventListener("submit", async (e) => {
     if (terminal) return;
     terminal = true; es.close();
     try {
-      const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
-        signal: AbortSignal.timeout(5000),
-      });
-      if (r.ok) {
-        const {status} = await r.json();
-        if (status === "done") {
-          showDone(`/api/image/${encodeURIComponent(jobId)}/chapter.png`);
-          return;
-        }
-        if (status === "interrupted" || status === "error") {
-          showError(status === "interrupted" ? "The render was interrupted." : "The render failed.");
-          return;
-        }
+      const status = await jobStatus(jobId);
+      if (status === "done") {
+        showDone(chapterUrl(jobId));
+        return;
       }
+      if (status === "interrupted" || status === "error") {
+        showFailedJob(status);
+        return;
+      }
+      if (status === "missing") forgetJob(jobId);
     } catch (_) {
       // A failed lookup is not evidence that the worker stopped.
     } finally {
@@ -175,7 +208,43 @@ form.addEventListener("submit", async (e) => {
     if (es.readyState !== EventSource.CLOSED) return;
     await recoverStatus();
   });
-});
+}
+
+async function restoreLastJob() {
+  const id = restoreJobId();
+  if (!id) return;
+  go.disabled = true;
+  let watching = false;
+  try {
+    const status = await jobStatus(id);
+    if (status === "missing") {
+      forgetJob(id);
+      return;
+    }
+    progress.classList.add("active");
+    reset();
+    if (status === "done") {
+      showDone(chapterUrl(id));
+      return;
+    }
+    if (status === "interrupted" || status === "error") {
+      showFailedJob(status);
+      return;
+    }
+    if (status === "pending" || status === "running") {
+      watchJob(id);
+      watching = true;
+      return;
+    }
+  } catch (_) {
+    // Keep the ID so a later refresh can retry without starting a job.
+  } finally {
+    if (!watching) go.disabled = false;
+  }
+  progress.classList.add("active");
+  showError("Could not restore progress. The job may still be running.", "disconnected");
+}
+void restoreLastJob();
 </script>
 </body>
 </html>
