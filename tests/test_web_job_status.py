@@ -257,3 +257,37 @@ def test_launch_failure_releases_render_slot(tmp_path, monkeypatch):
     app.config["RUN_JOB"] = lambda *args: started.set()
     assert client.post("/api/generate", json={"idea": "retry"}).status_code == 200
     assert started.wait(1)
+
+def test_recent_progress_is_bounded_without_losing_finished_chapters(tmp_path, monkeypatch):
+    class InlineWorker:
+        def __init__(self, *, target, **kwargs):
+            self.target = target
+
+        def start(self):
+            self.target()
+
+    def finish(job, root):
+        job.set_status("running")
+        folder = root / job.id
+        folder.mkdir()
+        (folder / "chapter.png").write_bytes(b"synthetic chapter")
+        job.set_status("done")
+        job.events.publish("done", {"status": "done"})
+        job.events.finish()
+
+    monkeypatch.setattr(web, "_RETAINED_COMPLETED_JOBS", 2, raising=False)
+    monkeypatch.setattr(web.threading, "Thread", InlineWorker)
+    app = web.create_app(tmp_path)
+    app.config["RUN_JOB"] = finish
+    client = app.test_client()
+    ids = []
+    for _ in range(4):
+        result = client.post("/api/generate", json={"idea": "synthetic only"})
+        assert result.status_code == 200
+        ids.append(result.get_json()["job_id"])
+
+    assert list(app.extensions["manhwa_jobs"]) == ids[-2:]
+    assert client.get(f"/api/stream/{ids[0]}").status_code == 404
+    assert client.get(f"/api/jobs/{ids[0]}").get_json()["status"] == "done"
+    assert client.get(f"/api/image/{ids[0]}/chapter.png").data == b"synthetic chapter"
+    assert b"event: done" in client.get(f"/api/stream/{ids[-1]}").data
