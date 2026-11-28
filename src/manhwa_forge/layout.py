@@ -10,6 +10,7 @@ The webtoon mode is the default because that's where manhwa actually gets
 read in 2026.
 """
 from __future__ import annotations
+from contextlib import closing
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
@@ -30,34 +31,37 @@ def compose_webtoon(
     max_width: int = MAX_WIDTH,
 ) -> Path:
     """Stack panels vertically into one tall chapter image."""
-    images = _load_images(panel_paths)
-    if not images:
+    if not panel_paths:
         raise ValueError("no panels to compose")
 
-    target_w = min(max_width, max(im.width for im in images))
-    resized = []
-    for im in images:
-        if im.width != target_w:
-            # A valid thin panel may round down to zero rows. Keep one row.
-            target_h = max(1, im.height * target_w // im.width)
-            im = im.resize((target_w, target_h), Image.LANCZOS)
-        resized.append(im)
+    # Read only headers to size the canvas. Keeping all decoded panels (and
+    # their resized copies) alongside the canvas is costly for long chapters.
+    sizes = []
+    for path in panel_paths:
+        with Image.open(path) as source:
+            sizes.append(source.size)
+    target_w = min(max_width, max(width for width, _ in sizes))
+    # A valid thin panel may round down to zero rows. Keep one row.
+    heights = [max(1, height * target_w // width) for width, height in sizes]
 
-    # Optional title banner at top
     title_h = 140 if title else 0
-    total_h = title_h + sum(im.height for im in resized) + gutter * (len(resized) + 1)
-    canvas = Image.new("RGB", (target_w, total_h), PAGE_BG)
+    total_h = title_h + sum(heights) + gutter * (len(heights) + 1)
+    with closing(Image.new("RGB", (target_w, total_h), PAGE_BG)) as canvas:
+        if title:
+            _draw_title(canvas, title, target_w, title_h)
 
-    if title:
-        _draw_title(canvas, title, target_w, title_h)
+        y = title_h + gutter
+        for path, target_h in zip(panel_paths, heights):
+            with closing(Image.open(path)) as source, closing(source.convert("RGB")) as panel:
+                if panel.width != target_w:
+                    with closing(panel.resize((target_w, target_h), Image.LANCZOS)) as resized:
+                        canvas.paste(resized, (0, y))
+                else:
+                    canvas.paste(panel, (0, y))
+            y += target_h + gutter
 
-    y = title_h + gutter
-    for im in resized:
-        canvas.paste(im, (0, y))
-        y += im.height + gutter
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(out_path, optimize=True)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        canvas.save(out_path, optimize=True)
     return out_path
 
 
