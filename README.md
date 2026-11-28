@@ -135,7 +135,9 @@ The local server runs one render at a time. A second submission returns HTTP
 
 Multiple tabs can watch the same job. If a connection drops, the browser can
 resume from its last progress event while the server is running. Each job keeps
-its latest 64 events in memory; the stream does not survive a server restart.
+its latest 64 events in memory. Only the 16 most recent finished jobs retain
+replay history. Older jobs can still be checked by ID and downloaded when their
+chapter file exists. The stream does not survive a server restart.
 
 For local integrations, use the `job_id` from `POST /api/generate` with
 `GET /api/jobs/<job_id>`. A small SQLite index in the output directory keeps

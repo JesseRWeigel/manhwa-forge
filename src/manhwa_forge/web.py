@@ -34,6 +34,7 @@ from .story import generate_script
 # The current UI targets up to 60 panels (plus two for story pacing),
 # with one script event and one terminal event.
 _PROGRESS_CAPACITY = 64
+_RETAINED_COMPLETED_JOBS = 16
 _HEARTBEAT_SECONDS = 15.0
 
 
@@ -234,6 +235,11 @@ def create_app(out_root: Path | None = None) -> Flask:
                 try:
                     run_job(job, root)
                 finally:
+                    # The slot still excludes another active worker here.
+                    # Existing streams hold their own reference to the job.
+                    with jobs_lock:
+                        while len(jobs) > _RETAINED_COMPLETED_JOBS:
+                            del jobs[next(iter(jobs))]
                     render_slot.release()
 
             try:
